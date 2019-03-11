@@ -54,3 +54,6 @@ gsv partition -s \t a.txt      // row separator is tab
 gsv partition -summary a.txt   // generate a summary file for the number of lines for each unique column value
 gsv partition --help           // help info
 ```
+
+# 4. Next
+new features will be added in the future.
