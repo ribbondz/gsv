@@ -56,7 +56,7 @@ gsv partition -summary a.txt   // generate a summary file tabling the number of 
 gsv partition --help           // help info
 ```
 
--gsv stats
+- gsv stats
 ```shell
 gsv stats a.txt           // has header, separator "," (default)
 gsv stats -n a.txt        // no header
