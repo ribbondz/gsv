@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
+	"github.com/ribbondz/gsv/cmd/utility"
 	"os"
 	"runtime"
 	"strconv"
@@ -52,11 +53,11 @@ type FloatColStats struct {
 }
 
 func Stats(file string, header bool, sep string) {
-	var et ElapsedTime
+	var et utility.ElapsedTime
 	et.Start()
 
 	// check file existence
-	if !FileIsExist(file) {
+	if !utility.FileIsExist(file) {
 		fmt.Print("File does not exist.")
 		return
 	}
@@ -87,8 +88,8 @@ func Stats(file string, header bool, sep string) {
 		}
 	}
 
-	jobs := make(chan []string, 2)
-	results := make(chan []ColStats, 2)
+	jobs := make(chan []string, 20)
+	results := make(chan []ColStats, 20)
 	wg := &sync.WaitGroup{}
 
 	// worker
@@ -379,7 +380,12 @@ func GuessColType(file string, header bool, sep string) ([]int, []string, error)
 		}
 
 		for i, field := range fields {
-			// obtain first value
+			// skip null values
+			if field == "" || field == "NA" || field == "Na" || field == "na" || field == "Null" || field == "NULL" {
+				continue
+			}
+
+			// obtain first not-null value
 			if firstValue[i] == "" && len(strings.TrimSpace(field)) > 0 {
 				firstValue[i] = field
 			}

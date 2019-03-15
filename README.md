@@ -16,6 +16,7 @@ download gsv-windows-amd64.exe from release tab; rename it to gsv.exe; and choos
 - **cat** - Concatenate CSV files by row.
 - **partition** - Split CSV file based on a column value.
 - **stats** - Generate statistics (e.g., min, max, average, unique count, na) on every column.
+- **frequency** - Show frequency table.
 
 ## 3. Examples
 
@@ -23,14 +24,14 @@ download gsv-windows-amd64.exe from release tab; rename it to gsv.exe; and choos
 ```shell
 gsv head a.txt        // default to first 20 rows
 gsv head -l 30 a.txt  // first 30 rows
-gsv head --help       // help info
+gsv head --help       // help info on all flags
 ```
 
 - gsv count
 ```shell
 gsv count a.txt      // default to have a header
 gsv count -n a.txt   // no header
-gsv count --help     // help info
+gsv count --help     // help info on all flags
 ```
 
 - gsv cat
@@ -41,7 +42,7 @@ gsv cat data_dir            // concatenate all files in data_dir directory,
 gsv cat -n data_dir         // no header
 gsv cat -p * data_dir       // file pattern, default to all files
 gsv cat -p *.csv data_dir   // all csv files in the directory
-gsv cat --help              // help info
+gsv cat --help              // help info on all flags
 ```
 
 - gsv partition
@@ -53,7 +54,7 @@ gsv partition -c 1 a.txt       // split by second column
 gsv partition -s , a.txt       // row separator is "," (default) 
 gsv partition -s \t a.txt      // row separator is tab
 gsv partition -summary a.txt   // generate a summary file tabling the number of lines for unique column values
-gsv partition --help           // help info
+gsv partition --help           // help info on all flags
 ```
 
 - gsv stats
@@ -61,7 +62,7 @@ gsv partition --help           // help info
 gsv stats a.txt           // has header, separator "," (default)
 gsv stats -n a.txt        // no header
 gsv stats -s \t a.txt     // tab separator
-gsv partition --help      // help info
+gsv partition --help      // help info on all flags
 
 output looks as bellow.
 +------+--------+------+--------+---------------------+---------------------+----------+------------+------------+
@@ -80,5 +81,35 @@ Total records: 9703035
 Time consumed: 6s
 ```
 
+- gsv frequency
+```shell
+gsv frequency a.txt           // first column, has header, separator "," (default)
+gsv frequency -n a.txt        // no header
+gsv frequency -s \t a.txt     // tab separator
+gsv frequency -c 0 a.txt      // frequency table on first column (default)
+gsv frequency -c 1 a.txt      // frequency table on second column
+gsv frequency -c 0,1 a.txt    // frequency table on first and second columns
+gsv frequency -l 10 a.txt     // keep top 10 records
+gsv frequency -a a.txt        // frequency table in ascending order, default to descending
+gsv frequency -o a.txt        // Print the frequency table to output file named "a-current-time.txt"
+gsv frequency --help          // help info on all flags
+
+column selection syntax:
+'1,2':   cols [1,2]
+'1-3,6': cols [1,2,3,6]
+'!1':    cols [all except col 1]
+'-1':    cols [all]
+
+outputs:
++-------+-------+-------+
+|  COL  | VALUE | COUNT |
++-------+-------+-------+
+| col_1 |     a |     2 |
+| col_1 |     b |     2 |
+| col_2 |     3 |     2 |
+| col_2 |     2 |     1 |
+| col_2 |     4 |     1 |
++-------+-------+-------+
+```
 # 4. Next
 new features will be added in the future.

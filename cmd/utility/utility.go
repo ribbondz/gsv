@@ -1,4 +1,4 @@
-package cmd
+package utility
 
 import (
 	"bufio"
@@ -12,7 +12,7 @@ func CheckErr(err error) {
 	}
 }
 
-func headerBytes(dst string) (header []byte) {
+func HeaderBytes(dst string) (header []byte) {
 	r, _ := os.Open(dst)
 	br := bufio.NewScanner(r)
 	br.Scan()
@@ -30,15 +30,18 @@ func CopyBytes(source []byte) []byte {
 func SaveFile(file string, list [][]string) {
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	CheckErr(err)
-	defer func() {
-		err = f.Close()
-		CheckErr(err)
-	}()
 
 	writer := csv.NewWriter(f)
-	defer writer.Flush()
+	writer.WriteAll(list)
+	writer.Flush()
+	f.Close()
+}
 
-	err = writer.WriteAll(list)
-	CheckErr(err)
-	//fmt.Println("Save to file: ", file)
+func SliceContainsInt(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

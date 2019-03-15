@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/ribbondz/gsv/cmd/utility"
 	"github.com/schollz/progressbar/v2"
 	"io/ioutil"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 func Cat(dir string, header bool, pattern string) {
-	var et ElapsedTime
+	var et utility.ElapsedTime
 	et.Start()
 
 	// all files
@@ -30,7 +31,7 @@ func Cat(dir string, header bool, pattern string) {
 	defer dstW.Close()
 
 	if header {
-		headerContent := headerBytes(files[0])
+		headerContent := utility.HeaderBytes(files[0])
 		WriteBytes(dstW, headerContent)
 	}
 
@@ -78,13 +79,13 @@ func worker(id int, jobs <-chan string, results chan<- []byte, header bool) {
 
 func fileList(dir string, pattern string) (files []string) {
 	wd, err := os.Getwd()
-	CheckErr(err)
+	utility.CheckErr(err)
 	p1 := filepath.Join(wd, dir, pattern)
 
 	fmt.Printf("Match pattern: %s\n", p1)
 
 	files, err = filepath.Glob(p1)
-	CheckErr(err)
+	utility.CheckErr(err)
 	return
 }
 
@@ -93,13 +94,13 @@ func dstFile(dir string) string {
 	timeStr := time.Now().Format("20060102150405")
 
 	// clean dir to prevent save output to sub directories.
-	dir = DirToFilename(dir)
+	dir = utility.DirToFilename(dir)
 	return filepath.Join(wd, dir+"-"+timeStr+".txt")
 }
 
 func ReadOneFile(path string, header bool) (byteContent []byte) {
 	byteContent, err := ioutil.ReadFile(path)
-	CheckErr(err)
+	utility.CheckErr(err)
 
 	// header
 	if header {

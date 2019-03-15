@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"github.com/ribbondz/gsv/cmd/utility"
 	"os"
 )
 
@@ -38,7 +39,7 @@ func EstimateRowNumber(path string, header bool, mb int) (estimatedRowN int) {
 	}
 
 	// total file size
-	total := FileSize(path)
+	total := utility.FileSize(path)
 	estimatedRowN = total / bytesPerRow
 	return
 }

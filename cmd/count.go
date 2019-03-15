@@ -3,21 +3,22 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/ribbondz/gsv/cmd/utility"
 	"os"
 )
 
 func Count(path string, header bool) (nRow int) {
-	var et ElapsedTime
+	var et utility.ElapsedTime
 	et.Start()
 
-	if !FileIsExist(path) {
+	if !utility.FileIsExist(path) {
 		fmt.Println("File doest not exist.")
 		return
 	}
 
 	r, err := os.Open(path)
 	defer r.Close()
-	CheckErr(err)
+	utility.CheckErr(err)
 
 	var bufSize = MBBytes * 10 // 10MB
 	buf := make([]byte, bufSize)

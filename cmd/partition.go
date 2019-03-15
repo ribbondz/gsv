@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/ribbondz/gsv/cmd/utility"
 	"github.com/schollz/progressbar/v2"
 	"hash/fnv"
 	"os"
@@ -30,11 +31,11 @@ type BufHandler struct {
 }
 
 func Partition(file string, header bool, column int, sep string, summary bool) {
-	var et ElapsedTime
+	var et utility.ElapsedTime
 	et.Start()
 
 	// check file existence
-	if !FileIsExist(file) {
+	if !utility.FileIsExist(file) {
 		fmt.Print("File does not exist.")
 		return
 	}
@@ -55,11 +56,11 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 	handler.header = header
 
 	if header && br.Scan() {
-		handler.headerBytes = CopyBytes(br.Bytes()) // must copy because s.token change under the hood
+		handler.headerBytes = utility.CopyBytes(br.Bytes()) // must copy because s.token change under the hood
 	}
 
 	// progress bar
-	size := FileSize(file)
+	size := utility.FileSize(file)
 	bar := progressbar.NewOptions(size,
 		progressbar.OptionSetBytes(size),
 		progressbar.OptionSetRenderBlankState(true))
@@ -154,7 +155,7 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 		if handler.header {
 			_, ok := handler.summary[k]
 			if !ok {
-				t := CopyBytes(handler.headerBytes)
+				t := utility.CopyBytes(handler.headerBytes)
 				t = append(t, '\n')
 				t = append(t, v...)
 				v = t
@@ -172,19 +173,19 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 func dstDirectory(file string) string {
 	wd, _ := os.Getwd()
 	file = strings.TrimSuffix(file, filepath.Ext(file))
-	file = DirToFilename(file)
+	file = utility.DirToFilename(file)
 	timeStr := time.Now().Format("20060102150405")
 
 	dir := filepath.Join(wd, file+"-"+timeStr)
 	err := os.MkdirAll(dir, os.ModePerm)
-	CheckErr(err)
+	utility.CheckErr(err)
 	return dir
 }
 
 func summaryFilename(file string) string {
 	wd, _ := os.Getwd()
 	file = strings.TrimSuffix(file, filepath.Ext(file))
-	file = DirToFilename(file)
+	file = utility.DirToFilename(file)
 	timeStr := time.Now().Format("20060102150405")
 	return filepath.Join(wd, file+"-split-summary-"+timeStr+".txt")
 }
@@ -202,7 +203,7 @@ func AppendToFile(dir string, col string, content []byte) {
 func HashedFileName(name string) (filename string) {
 	h := fnv.New64a()
 	_, err := h.Write([]byte(name))
-	CheckErr(err)
+	utility.CheckErr(err)
 	filename = strconv.FormatUint(h.Sum64(), 10) + ".txt"
 	return
 }
@@ -227,6 +228,6 @@ func WriteSummary(path string, summary map[string]int) {
 	// add header
 	result = append([][]string{{"col", "count"}}, result...)
 
-	SaveFile(path, result)
+	utility.SaveFile(path, result)
 	fmt.Printf("Summary file saved to: %s\n", path)
 }
