@@ -14,9 +14,9 @@ download gsv-windows-amd64.exe from release tab; rename it to gsv.exe; and choos
 - **head** - Show head n lines of CSV file.
 - **count** - Count the lines in CSV file.
 - **cat** - Concatenate CSV files by row.
+- **frequency** - Show frequency table.
 - **partition** - Split CSV file based on a column value.
 - **stats** - Generate statistics (e.g., min, max, average, unique count, na) on every column.
-- **frequency** - Show frequency table.
 
 ## 3. Examples
 
@@ -43,6 +43,37 @@ gsv cat -n data_dir         // no header
 gsv cat -p * data_dir       // file pattern, default to all files
 gsv cat -p *.csv data_dir   // all csv files in the directory
 gsv cat --help              // help info on all flags
+```
+
+- gsv frequency
+```shell
+gsv frequency a.txt           // first column, has header, separator "," (default)
+gsv frequency -n a.txt        // no header
+gsv frequency -s \t a.txt     // tab separator
+gsv frequency -c 0 a.txt      // frequency table on first column (default)
+gsv frequency -c 1 a.txt      // frequency table on second column
+gsv frequency -c 0,1 a.txt    // frequency table on first and second columns
+gsv frequency -l 10 a.txt     // keep top 10 records
+gsv frequency -a a.txt        // frequency table in ascending order, default to descending
+gsv frequency -o a.txt        // Print the frequency table to output file named "a-current-time.txt"
+gsv frequency --help          // help info on all flags
+
+column selection syntax:
+'1,2':   cols [1,2]
+'1-3,6': cols [1,2,3,6]
+'!1':    cols [all except col 1]
+'-1':    cols [all]
+
+outputs:
++-------+-------+-------+
+|  COL  | VALUE | COUNT |
++-------+-------+-------+
+| col_1 |     a |     2 |
+| col_1 |     b |     2 |
+| col_2 |     3 |     2 |
+| col_2 |     2 |     1 |
+| col_2 |     4 |     1 |
++-------+-------+-------+
 ```
 
 - gsv partition
@@ -81,35 +112,5 @@ Total records: 9703035
 Time consumed: 6s
 ```
 
-- gsv frequency
-```shell
-gsv frequency a.txt           // first column, has header, separator "," (default)
-gsv frequency -n a.txt        // no header
-gsv frequency -s \t a.txt     // tab separator
-gsv frequency -c 0 a.txt      // frequency table on first column (default)
-gsv frequency -c 1 a.txt      // frequency table on second column
-gsv frequency -c 0,1 a.txt    // frequency table on first and second columns
-gsv frequency -l 10 a.txt     // keep top 10 records
-gsv frequency -a a.txt        // frequency table in ascending order, default to descending
-gsv frequency -o a.txt        // Print the frequency table to output file named "a-current-time.txt"
-gsv frequency --help          // help info on all flags
-
-column selection syntax:
-'1,2':   cols [1,2]
-'1-3,6': cols [1,2,3,6]
-'!1':    cols [all except col 1]
-'-1':    cols [all]
-
-outputs:
-+-------+-------+-------+
-|  COL  | VALUE | COUNT |
-+-------+-------+-------+
-| col_1 |     a |     2 |
-| col_1 |     b |     2 |
-| col_2 |     3 |     2 |
-| col_2 |     2 |     1 |
-| col_2 |     4 |     1 |
-+-------+-------+-------+
-```
 # 4. Next
 new features will be added in the future.
