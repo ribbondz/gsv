@@ -21,11 +21,10 @@ func headerBytes(dst string) (header []byte) {
 	return
 }
 
-func CopyBytes(source []byte) (dst []byte) {
-	for _, v := range source {
-		dst = append(dst, v)
-	}
-	return
+func CopyBytes(source []byte) []byte {
+	dst := make([]byte, len(source))
+	copy(dst, source)
+	return dst
 }
 
 func SaveFile(file string, list [][]string) {

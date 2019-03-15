@@ -13,5 +13,4 @@ go build -o "dist/gsv-netbsd-amd64"
 export GOARCH=amd64 GOOS=freebsd
 go build -o "dist/gsv-freebsd-amd64"
 
-export GOARCH=amd64 GOOS=windows
-go build -o "dist/gsv-windows-amd64.exe"
+env GOARCH=amd64 GOOS=windows go build -o "dist/gsv-windows-amd64.exe"
