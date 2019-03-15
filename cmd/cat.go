@@ -3,8 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/ribbondz/utility"
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,6 +13,9 @@ import (
 )
 
 func Cat(dir string, header bool, pattern string) {
+	var et ElapsedTime
+	et.Start()
+
 	// all files
 	files := fileList(dir, pattern)
 	if len(files) == 0 {
@@ -65,6 +67,7 @@ func Cat(dir string, header bool, pattern string) {
 	bar.Finish()
 	dstW.Sync()
 	fmt.Printf("\n\nSave to file: %s\n", dst)
+	et.EndAndPrint()
 }
 
 func worker(id int, jobs <-chan string, results chan<- []byte, header bool) {
@@ -75,13 +78,13 @@ func worker(id int, jobs <-chan string, results chan<- []byte, header bool) {
 
 func fileList(dir string, pattern string) (files []string) {
 	wd, err := os.Getwd()
-	utility.CheckErr(err)
+	CheckErr(err)
 	p1 := filepath.Join(wd, dir, pattern)
 
 	fmt.Printf("Match pattern: %s\n", p1)
 
 	files, err = filepath.Glob(p1)
-	utility.CheckErr(err)
+	CheckErr(err)
 	return
 }
 
@@ -96,7 +99,7 @@ func dstFile(dir string) string {
 
 func ReadOneFile(path string, header bool) (byteContent []byte) {
 	byteContent, err := ioutil.ReadFile(path)
-	utility.CheckErr(err)
+	CheckErr(err)
 
 	// header
 	if header {

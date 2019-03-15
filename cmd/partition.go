@@ -4,21 +4,19 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/ribbondz/utility"
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v2"
 	"hash/fnv"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
 var (
-	BarUpdateThreshold = 1024 * 1024 * 20  // 20MB
-	Batch              = 1024 * 1024 * 800 // 800MB
+	BarUpdateThreshold = 1024 * 1024 * 20   // 20MB
+	Batch              = 1024 * 1024 * 1000 // 1000MB
 )
 
 type BufHandler struct {
@@ -32,6 +30,9 @@ type BufHandler struct {
 }
 
 func Partition(file string, header bool, column int, sep string, summary bool) {
+	var et ElapsedTime
+	et.Start()
+
 	// check file existence
 	if !FileIsExist(file) {
 		fmt.Print("File does not exist.")
@@ -126,6 +127,8 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 		summaryFile := summaryFilename(file)
 		WriteSummary(summaryFile, handler.summary)
 	}
+
+	et.EndAndPrint()
 }
 
 func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressbar.ProgressBar) {
@@ -167,55 +170,6 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 	<-done
 }
 
-func (handler *BufHandler) SaveContentParallel(content map[string][]byte, bar *progressbar.ProgressBar) {
-	appendFileDone := make(chan int, 4)
-	result := make(chan int, 10)
-	wg := &sync.WaitGroup{}
-
-	// update bar
-	barUpdateDone := make(chan int)
-	go func() {
-		t := 0
-		for byte := range result {
-			t += byte
-			if t > BarUpdateThreshold {
-				bar.Add(t)
-				t = 0
-			}
-		}
-		bar.Add(t)
-		barUpdateDone <- 1
-	}()
-
-	for k, v := range content {
-		k, v := k, v
-		handler.summary[k] += bytes.Count(v, []byte{'\n'})
-		// append a header for first time write
-		if handler.header {
-			_, ok := handler.summary[k]
-			if !ok {
-				t := append([]byte{}, handler.headerBytes...)
-				t = append(t, '\n')
-				t = append(t, v...)
-				v = t
-			}
-		}
-
-		appendFileDone <- 1
-		wg.Add(1)
-		go func() {
-			AppendToFile(handler.dstDir, k, v)
-			<-appendFileDone
-			result <- len(v)
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
-	close(result)
-	<-barUpdateDone
-}
-
 func dstDirectory(file string) string {
 	wd, _ := os.Getwd()
 	file = strings.TrimSuffix(file, filepath.Ext(file))
@@ -249,7 +203,7 @@ func AppendToFile(dir string, col string, content []byte) {
 func HashedFileName(name string) (filename string) {
 	h := fnv.New64a()
 	_, err := h.Write([]byte(name))
-	utility.CheckErr(err)
+	CheckErr(err)
 	filename = strconv.FormatUint(h.Sum64(), 10) + ".txt"
 	return
 }
@@ -274,6 +228,6 @@ func WriteSummary(path string, summary map[string]int) {
 	// add header
 	result = append([][]string{{"col", "count"}}, result...)
 
-	utility.SaveFile(path, result)
+	SaveFile(path, result)
 	fmt.Printf("Summary file saved to: %s\n", path)
 }

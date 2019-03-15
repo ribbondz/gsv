@@ -15,6 +15,7 @@ choose the either one:
 - **count** - Count the lines in the CSV file.
 - **cat** - Concatenate CSV files by row.
 - **partition** - Split CSV file based on a column value.
+- **stats** - Generate statistics (e.g., min, max, average, unique count, na) on every column.
 
 ## 3. Examples
 
@@ -53,6 +54,13 @@ gsv partition -s , a.txt       // row separator is "," (default)
 gsv partition -s \t a.txt      // row separator is tab
 gsv partition -summary a.txt   // generate a summary file for the number of lines for each unique column value
 gsv partition --help           // help info
+```
+
+-gsv stats
+```shell
+gsv stats a.txt           // has header, separator "," (default)
+gsv stats -n a.txt        // no header
+gsv stats -s \t a.txt     // tab separator
 ```
 
 # 4. Next

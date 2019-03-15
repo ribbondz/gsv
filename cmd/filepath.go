@@ -5,14 +5,13 @@ import (
 	"strings"
 )
 
-func DirToFilename(dir string) string {
-	dir = strings.ReplaceAll(dir, string('\\'), "-")
-	dir = strings.ReplaceAll(dir, string('/'), "-")
-	dir = strings.ReplaceAll(dir, "--", "-")
-	if len(dir) > 1 && strings.HasSuffix(dir, "-") {
-		dir = dir[0 : len(dir)-1]
+func FileSize(file string) int {
+	f, err := os.Stat(file)
+	if os.IsNotExist(err) {
+		return 0
+	} else {
+		return int(f.Size())
 	}
-	return dir
 }
 
 func FileIsExist(file string) bool {
@@ -22,8 +21,12 @@ func FileIsExist(file string) bool {
 	return true
 }
 
-func CheckErr(err error) {
-	if err != nil {
-		panic(err)
+func DirToFilename(dir string) string {
+	dir = strings.ReplaceAll(dir, string('\\'), "-")
+	dir = strings.ReplaceAll(dir, string('/'), "-")
+	dir = strings.ReplaceAll(dir, "--", "-")
+	if len(dir) > 1 && strings.HasSuffix(dir, "-") {
+		dir = dir[0 : len(dir)-1]
 	}
+	return dir
 }

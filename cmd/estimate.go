@@ -5,16 +5,16 @@ import (
 	"os"
 )
 
+const (
+	MBBytes = 1024 * 1024 // 1MB
+)
+
 func EstimateRowNumber(path string, header bool, mb int) (estimatedRowN int) {
-	r, err := os.Open(path)
-	CheckErr(err)
-	defer func() {
-		err = r.Close()
-		CheckErr(err)
-	}()
+	r, _ := os.Open(path)
+	defer r.Close()
 
 	// guess rows by 10M data
-	buf := make([]byte, BufSize*mb)
+	buf := make([]byte, MBBytes*mb)
 	r.Read(buf)
 
 	// delete header
@@ -41,13 +41,4 @@ func EstimateRowNumber(path string, header bool, mb int) (estimatedRowN int) {
 	total := FileSize(path)
 	estimatedRowN = total / bytesPerRow
 	return
-}
-
-func FileSize(file string) int {
-	f, err := os.Stat(file)
-	if os.IsNotExist(err) {
-		return 0
-	} else {
-		return int(f.Size())
-	}
 }
