@@ -22,7 +22,9 @@ func headerBytes(dst string) (header []byte) {
 }
 
 func CopyBytes(source []byte) (dst []byte) {
-	copy(dst, source)
+	for _, v := range source {
+		dst = append(dst, v)
+	}
 	return
 }
 

@@ -54,9 +54,8 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 	handler.column = column
 	handler.header = header
 
-	if header {
-		br.Scan()
-		handler.headerBytes = br.Bytes()
+	if header && br.Scan() {
+		handler.headerBytes = CopyBytes(br.Bytes()) // must copy because s.token change under the hood
 	}
 
 	// progress bar
@@ -149,13 +148,13 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 	}()
 
 	for k, v := range content {
-		result <- len(v) + 2
+		//result <- len(v) + 2
 
 		// append a header for first time write
 		if handler.header {
 			_, ok := handler.summary[k]
 			if !ok {
-				t := append([]byte{}, handler.headerBytes...)
+				t := CopyBytes(handler.headerBytes)
 				t = append(t, '\n')
 				t = append(t, v...)
 				v = t
