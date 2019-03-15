@@ -6,7 +6,7 @@ gsv is a command line program to deal with CSV files. Gsv has following features
 - simple
 
 ## 1. Usage
-download gsv.exe from release tab and choose the either one:
+download gsv-windows-amd64.exe from release tab; rename it to gsv.exe; and choose the either one:
 - put gsv.exe in system path
 - put gsv.exe and the data in same folder
 
