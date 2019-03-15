@@ -52,7 +52,7 @@ gsv partition -c 0 a.txt       // split by first column (default)
 gsv partition -c 1 a.txt       // split by second column
 gsv partition -s , a.txt       // row separator is "," (default) 
 gsv partition -s \t a.txt      // row separator is tab
-gsv partition -summary a.txt   // generate a summary file tabling the number of lines for each unique column value
+gsv partition -summary a.txt   // generate a summary file tabling the number of lines for unique column values
 gsv partition --help           // help info
 ```
 
