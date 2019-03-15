@@ -36,7 +36,7 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 
 	// check file existence
 	if !utility.FileIsExist(file) {
-		fmt.Print("File does not exist.")
+		fmt.Print("File does not exist. Try command 'gsv partition --help'.")
 		return
 	}
 	r, _ := os.Open(file)
@@ -44,7 +44,7 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 	br := bufio.NewScanner(r)
 
 	// estimate number of rows
-	estimatedTotalN := EstimateRowNumber(file, header, 20) //20MB
+	estimatedTotalN := utility.EstimateRowNumber(file, header, 20) //20MB
 	fmt.Printf("Estimated row number: %d\n\n", estimatedTotalN)
 
 	// struct to hold all options

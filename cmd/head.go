@@ -10,7 +10,7 @@ import (
 func Head(path string, n int) {
 	// check file existence
 	if !utility.FileIsExist(path) {
-		fmt.Print("File does not exist.")
+		fmt.Print("File does not exist. Try command 'gsv frequency --help'.")
 		return
 	}
 

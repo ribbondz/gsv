@@ -230,7 +230,7 @@ func main() {
 	}
 
 	app.CommandNotFound = func(c *cli.Context, command string) {
-		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'partition', 'stats']", command)
+		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'frequency', 'partition', 'stats']", command)
 	}
 
 	err := app.Run(os.Args)

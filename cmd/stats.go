@@ -58,7 +58,7 @@ func Stats(file string, header bool, sep string) {
 
 	// check file existence
 	if !utility.FileIsExist(file) {
-		fmt.Print("File does not exist.")
+		fmt.Print("File does not exist. Try command 'gsv stats --help'.")
 		return
 	}
 

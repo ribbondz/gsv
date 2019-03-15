@@ -12,7 +12,7 @@ func Count(path string, header bool) (nRow int) {
 	et.Start()
 
 	if !utility.FileIsExist(path) {
-		fmt.Println("File doest not exist.")
+		fmt.Println("File doest not exist. Try command 'gsv count --help'.")
 		return
 	}
 

@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+const (
+	MBBytes = 1024 * 1024 // 1MB
+)
+
 func Cat(dir string, header bool, pattern string) {
 	var et utility.ElapsedTime
 	et.Start()
