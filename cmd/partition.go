@@ -148,7 +148,7 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 	}()
 
 	for k, v := range content {
-		//result <- len(v) + 2
+		result <- len(v) + 2
 
 		// append a header for first time write
 		if handler.header {
