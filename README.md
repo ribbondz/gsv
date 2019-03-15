@@ -64,7 +64,7 @@ column selection syntax:
 '!1':    cols [all except col 1]
 '-1':    cols [all]
 
-outputs:
+frequency table:
 +-------+-------+-------+
 |  COL  | VALUE | COUNT |
 +-------+-------+-------+
