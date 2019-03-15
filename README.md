@@ -6,13 +6,13 @@ gsv is a command line program to deal with CSV files. Gsv has following features
 - simple
 
 ## 1. Usage
-choose the either one:
-- put the gsv.exe file in system path
-- put gsv.exe and the data in the same folder
+download gsv.exe from release tab and choose the either one:
+- put gsv.exe in system path
+- put gsv.exe and the data in same folder
 
 ## 2. Available commands
 - **head** - Show head n lines of CSV file.
-- **count** - Count the lines in the CSV file.
+- **count** - Count the lines in CSV file.
 - **cat** - Concatenate CSV files by row.
 - **partition** - Split CSV file based on a column value.
 - **stats** - Generate statistics (e.g., min, max, average, unique count, na) on every column.
