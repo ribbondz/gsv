@@ -11,7 +11,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "gsv"
-	app.Version = "0.0.1"
+	app.Version = "0.0.2"
 	app.Usage = "Csv toolkit focused on performance and parallel processing"
 
 	app.Commands = []cli.Command{
