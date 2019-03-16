@@ -14,6 +14,7 @@ download gsv.exe from release tab; and choose the either one:
 - **head** - Show head n lines of CSV file.
 - **count** - Count the lines in CSV file.
 - **cat** - Concatenate CSV files by row.
+- **filter** - Filter CSV file based on column values.
 - **frequency** - Show frequency table on columns.
 - **partition** - Split CSV file based on a column value.
 - **stats** - Show statistics (e.g., min, max, average, unique count, na) on every column.
