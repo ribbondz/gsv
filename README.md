@@ -13,9 +13,9 @@ download gsv.exe from release tab; and choose the either one:
 ## 2. Available commands
 - **head** - Show head n lines of CSV file.
 - **count** - Count the lines in CSV file.
-- **cat** - Concatenate CSV files by row ***(with progress bar)***.
+- **cat** - Concatenate CSV files by row **(with progress bar)**.
 - **frequency** - Show frequency table on columns.
-- **partition** - Split CSV file based on a column value ***(with progress bar)***.
+- **partition** - Split CSV file based on a column value **(with progress bar)**.
 - **select** - Select rows and columns from CSV file.
 - **stats** - Show statistics (e.g., min, max, average, unique count, null) on every column.
 
