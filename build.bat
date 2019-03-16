@@ -16,7 +16,7 @@ go build -o dist/gsv-freebsd-amd64
 
 set GOARCH=amd64
 set GOOS=windows
-go build -o dist/gsv-windows-amd64.exe
+go build -o dist/gsv.exe
 
 REM cmd /k
 REM cmd /k
