@@ -17,7 +17,7 @@ download gsv.exe from release tab; and choose the either one:
 - **frequency** - Show frequency table on columns.
 - **partition** - Split CSV file based on a column value.
 - **select** - Select rows and columns from CSV file.
-- **stats** - Show statistics (e.g., min, max, average, unique count, na) on every column.
+- **stats** - Show statistics (e.g., min, max, average, unique count, null) on every column.
 
 ## 3. Examples
 
