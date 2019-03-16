@@ -60,10 +60,10 @@ gsv frequency -o a.txt        // Print the frequency table to output file named 
 gsv frequency --help          // help info on all flags
 
 column selection syntax:
-"1,2":   cols [1,2]
-"1-3,6": cols [1,2,3,6]
-"!1":    cols [all except col 1]
-"-1":    cols [all]
+-c "1,2"   -->    cols [1,2]
+-c "1-3,6" -->    cols [1,2,3,6]
+-c "!1"    -->    cols [all except col 1]
+-c "-1"    -->    cols [all]
 
 frequency table:
 +-------+-------+-------+
@@ -113,10 +113,10 @@ NOTE: 1. more complex syntax with brackets
 	     This feature maybe be added in the future.
 	     
 column selection syntax:
-"1,2":   cols [1,2]
-"1-3,6": cols [1,2,3,6]
-"!1":    cols [all except col 1]
-"-1":    cols [all]
+-c "1,2"   -->    cols [1,2]
+-c "1-3,6" -->    cols [1,2,3,6]
+-c "!1"    -->    cols [all except col 1]
+-c "-1"    -->    cols [all]
 ```
 
 - gsv stats
