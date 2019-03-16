@@ -93,8 +93,8 @@ gsv partition --help           // help info on all flags
 ```shell
 gsv select -f 0=abc a.txt                       // has header, separator ",", first column is "abc"
                                                 // set FILTER criterion using -f flag
-gsv select -f "0=abc|0=de" a.txt               // first column is "abc" or "de"
-gsv select -f "0=abc&1=de" a.txt               // first column is "abc" and second column is "de"
+gsv select -f "0=abc|0=de" a.txt                // first column is "abc" or "de"
+gsv select -f "0=abc&1=de" a.txt                // first column is "abc" and second column is "de"
 gsv select -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
 gsv select -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
 gsv select -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
