@@ -25,7 +25,6 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 		return
 	}
 
-	// all columns to generate a frequency table
 	columnN := ColumnN(file, sep)                    // how many columns
 	col := utility.AllIncludedCols(colPara, columnN) // all included columns []int
 

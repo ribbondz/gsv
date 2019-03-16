@@ -11,7 +11,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "gsv"
-	app.Version = "0.0.2"
+	app.Version = "0.0.3"
 	app.Usage = "Csv toolkit focused on performance and parallel processing"
 
 	app.Commands = []cli.Command{
@@ -227,10 +227,73 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:  "filter",
+			Usage: "Filter rows based on provided column criterion",
+			Description: `examples:
+	 gsv filter -f 0=abc a.txt                       // has header, separator ",", first column is 'abc'
+	 gsv filter -f "0=abc|0=de"" a.txt               // first column is 'abc' or 'de'
+	 gsv filter -f "0=abc&1=de"" a.txt               // first column is 'abc' and second column is 'de'
+	 gsv filter -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
+	 gsv filter -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
+	 gsv filter -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+	 gsv filter --help                               // help info on other options
+	
+	 column filter syntax:
+	 '0=abc':       first column equal to string 'abc'
+	 '1=5.0':       second column equal to number 5.0
+	 '1=5':         same as pre command, second column equal to number 5.0
+	 '0=abc&1=5.0': first column is 'abc' AND second column is 5.0
+	 '0=abc|1=5.0': first column is 'abc' OR second column is 5.0
+	
+	 NOTE: 1. more complex syntax with brackets 
+	          such as '(0=abc|1=5.0)&c=1' is not supported.
+	       2. one filter can only have & or |, but never both. 
+	          This feature maybe be added in the future.
+`,
+			Action: func(c *cli.Context) error {
+				path := c.Args().First()
+				header := !c.Bool("n")
+				sep := utility.SepArg(c.String("s"))
+				filter := c.String("f")
+				col, err := utility.ParseColArg(c.String("c"))
+				if err != nil {
+					fmt.Println("column selection syntax error.")
+					return nil
+				}
+				out := c.Bool("o")
+				cmd.Filter(path, header, sep, filter, col, out)
+				return nil
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "no-header, n",
+					Usage: "When set, the first row will NOT be interpreted as column names",
+				},
+				cli.StringFlag{
+					Name:  "sep, s",
+					Usage: "File separation",
+					Value: ",",
+				},
+				cli.StringFlag{
+					Name:  "filter, f",
+					Usage: "Filter criterion, see filter syntax in description",
+				},
+				cli.StringFlag{
+					Name:  "col, c",
+					Usage: "Select a subset of columns, default to all column",
+					Value: "-1",
+				},
+				cli.BoolFlag{
+					Name:  "output, o",
+					Usage: "Print the frequency table to output file, instead of stdout",
+				},
+			},
+		},
 	}
 
 	app.CommandNotFound = func(c *cli.Context, command string) {
-		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'frequency', 'partition', 'stats']", command)
+		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'filter', 'frequency', 'partition', 'stats']", command)
 	}
 
 	err := app.Run(os.Args)

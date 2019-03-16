@@ -45,6 +45,29 @@ gsv cat -p *.csv data_dir   // all csv files in the directory
 gsv cat --help              // help info on all flags
 ```
 
+- gsv filter
+```shell
+gsv filter -f 0=abc a.txt                       // has header, separator ",", first column is 'abc'
+gsv filter -f "0=abc|0=de"" a.txt               // first column is 'abc' or 'de'
+gsv filter -f "0=abc&1=de"" a.txt               // first column is 'abc' and second column is 'de'
+gsv filter -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
+gsv filter -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
+gsv filter -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+gsv filter --help                               // help info on other options
+	
+column filter syntax:
+'0=abc':       first column equal to string 'abc'
+'1=5.0':       second column equal to number 5.0
+'1=5':         same as pre command, second column equal to number 5.0
+'0=abc&1=5.0': first column is 'abc' AND second column is 5.0
+'0=abc|1=5.0': first column is 'abc' OR second column is 5.0
+	
+NOTE: 1. more complex syntax with brackets 
+	     such as '(0=abc|1=5.0)&c=1' is not supported.
+      2. one filter can only have & or |, but never both. 
+	     This feature maybe be added in the future.
+```
+
 - gsv frequency
 ```shell
 gsv frequency a.txt           // first column, has header, separator "," (default)
