@@ -38,7 +38,7 @@ func main() {
 		},
 		{
 			Name:  "count",
-			Usage: "Count total line of file",
+			Usage: "Count total lines of file",
 			Description: `examples:
 	 gsv count a.txt
 	 gsv count --help           // help info 
@@ -58,7 +58,7 @@ func main() {
 		},
 		{
 			Name:  "cat",
-			Usage: "Cat files in a directory",
+			Usage: "Concatenate files in a directory",
 			Description: `examples:
 	 gsv cat data_dir                // has header, all files in data_dir (default)
 	 gsv cat -n data_dir             // no header, all files
@@ -87,7 +87,7 @@ func main() {
 		},
 		{
 			Name:  "partition",
-			Usage: "Partitions the given CSV data into chunks based on the value of a column",
+			Usage: "Partitions CSV file into chunks based on a column value",
 			Description: `examples:
 	 gsv partition a.txt                          // has header, partition by first column, no summary file (default)
 	 gsv partition -n a.txt                       // no header
@@ -115,22 +115,22 @@ func main() {
 				},
 				cli.IntFlag{
 					Name:  "column, c",
-					Usage: "Partitions by which column",
+					Usage: "Partition by which column",
 				},
 				cli.StringFlag{
 					Name:  "sep, s",
-					Usage: "File separation",
+					Usage: "File separator",
 					Value: ",",
 				},
 				cli.BoolFlag{
 					Name:  "summary",
-					Usage: "Generate a summary file tabling line count for each column value",
+					Usage: "Generate a summary file tabling line counts for each column value",
 				},
 			},
 		},
 		{
 			Name:  "stats",
-			Usage: "Generate statistics (e.g., min, max, average, unique count, na) on every column",
+			Usage: "Show statistics (e.g., min, max, average, unique count, null) on every column",
 			Description: `examples:
 	 gsv stats a.txt           // has header, separator "," (default)
 	 gsv stats -n a.txt        // no header
@@ -151,7 +151,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "sep, s",
-					Usage: "File separation",
+					Usage: "File separator",
 					Value: ",",
 				},
 			},
@@ -204,7 +204,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "sep, s",
-					Usage: "File separation",
+					Usage: "File separator",
 					Value: ",",
 				},
 				cli.StringFlag{
@@ -219,7 +219,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "output, o",
-					Usage: "Print the frequency table to output file, instead of stdout",
+					Usage: "Print the frequency table to an output file, instead of stdout",
 				},
 				cli.BoolFlag{
 					Name:  "ascending, a",
@@ -229,7 +229,7 @@ func main() {
 		},
 		{
 			Name:  "select",
-			Usage: "Select rows and columns based on provided criterion",
+			Usage: "Select rows and columns based on filters",
 			Description: `examples:
 	 gsv select -f 0=abc a.txt                       // has header, separator ",", first column is 'abc',
 	                                                 // set FILTER criterion using -f flag
@@ -273,7 +273,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "sep, s",
-					Usage: "File separation",
+					Usage: "File separator",
 					Value: ",",
 				},
 				cli.StringFlag{
@@ -287,7 +287,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "output, o",
-					Usage: "Print the frequency table to output file, instead of stdout",
+					Usage: "Print the frequency table to an output file, instead of stdout",
 				},
 			},
 		},
