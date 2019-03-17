@@ -19,6 +19,9 @@ download gsv.exe from release tab; and choose the either one:
 - **select** - Select rows and columns from CSV file.
 - **stats** - Show statistics (e.g., min, max, average, unique count, null) on every column.
 
+Tips: you can always check usage of each command by **gsv command --help**, 
+for example, gsv frequency --help.
+
 ## 3. Examples
 
 - gsv head
