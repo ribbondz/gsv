@@ -17,13 +17,13 @@ type rowContent struct {
 	content string
 }
 
-func Filter(file string, header bool, sep string, filterPara string, colPara utility.ColArgs, out bool) {
+func Select(file string, header bool, sep string, filterPara string, colPara utility.ColArgs, out bool) {
 	var et utility.ElapsedTime
 	et.Start()
 
 	// check file existence
 	if !utility.FileIsExist(file) {
-		fmt.Print("File does not exist. Try command 'gsv filter --help'.")
+		fmt.Print("File does not exist. Try command 'gsv select --help'.")
 		return
 	}
 
@@ -34,7 +34,7 @@ func Filter(file string, header bool, sep string, filterPara string, colPara uti
 	// filters
 	filter, err := utility.NewFilter(filterPara, columnN)
 	if err != nil {
-		fmt.Print("Filter syntax error. Try command 'gsv filter --help'.")
+		fmt.Print("Filter syntax error. Try command 'gsv select --help'.")
 		return
 	}
 
@@ -63,8 +63,8 @@ func Filter(file string, header bool, sep string, filterPara string, colPara uti
 
 	jobs := make(chan []string, 20)      // batch rows
 	results := make(chan rowContent, 20) // filter out rows joined in a string
-	wg := &sync.WaitGroup{}
-	total := 0
+	wg := &sync.WaitGroup{}              // wait all batch processing
+	total := 0                           // filter out rows count
 
 	// worker, process batch rows
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -87,7 +87,7 @@ func Filter(file string, header bool, sep string, filterPara string, colPara uti
 					fmt.Print(result.content) // has \n, so use fmt.Print
 				}
 			}
-			wg.Done()
+			wg.Done() // indicate work done
 		}
 	}()
 

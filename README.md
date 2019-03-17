@@ -1,9 +1,9 @@
 # csv toolkit written in golang
 gsv is a command line program to deal with CSV files. Gsv has following features:
 
-- fast, parallel processing
+- fast and parallel processing
 - real-time progress bar
-- simple
+- simple usage
 
 ## 1. Usage
 download gsv.exe from release tab; and choose the either one:
@@ -14,9 +14,9 @@ download gsv.exe from release tab; and choose the either one:
 - **head** - Show head n lines of CSV file.
 - **count** - Count the lines in CSV file.
 - **cat** - Concatenate CSV files by row.
-- **filter** - Filter CSV file based on column values.
 - **frequency** - Show frequency table on columns.
 - **partition** - Split CSV file based on a column value.
+- **select** - Select rows and columns from CSV file.
 - **stats** - Show statistics (e.g., min, max, average, unique count, na) on every column.
 
 ## 3. Examples
@@ -46,29 +46,6 @@ gsv cat -p *.csv data_dir   // all csv files in the directory
 gsv cat --help              // help info on all flags
 ```
 
-- gsv filter
-```shell
-gsv filter -f 0=abc a.txt                       // has header, separator ",", first column is 'abc'
-gsv filter -f "0=abc|0=de"" a.txt               // first column is 'abc' or 'de'
-gsv filter -f "0=abc&1=de"" a.txt               // first column is 'abc' and second column is 'de'
-gsv filter -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
-gsv filter -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
-gsv filter -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
-gsv filter --help                               // help info on other options
-	
-column filter syntax:
-'0=abc':       first column equal to string 'abc'
-'1=5.0':       second column equal to number 5.0
-'1=5':         same as pre command, second column equal to number 5.0
-'0=abc&1=5.0': first column is 'abc' AND second column is 5.0
-'0=abc|1=5.0': first column is 'abc' OR second column is 5.0
-	
-NOTE: 1. more complex syntax with brackets 
-	     such as '(0=abc|1=5.0)&c=1' is not supported.
-      2. one filter can only have & or |, but never both. 
-	     This feature maybe be added in the future.
-```
-
 - gsv frequency
 ```shell
 gsv frequency a.txt           // first column, has header, separator "," (default)
@@ -83,10 +60,10 @@ gsv frequency -o a.txt        // Print the frequency table to output file named 
 gsv frequency --help          // help info on all flags
 
 column selection syntax:
-'1,2':   cols [1,2]
-'1-3,6': cols [1,2,3,6]
-'!1':    cols [all except col 1]
-'-1':    cols [all]
+"1,2":   cols [1,2]
+"1-3,6": cols [1,2,3,6]
+"!1":    cols [all except col 1]
+"-1":    cols [all]
 
 frequency table:
 +-------+-------+-------+
@@ -112,6 +89,36 @@ gsv partition -summary a.txt   // generate a summary file tabling the number of 
 gsv partition --help           // help info on all flags
 ```
 
+- gsv select
+```shell
+gsv select -f 0=abc a.txt                       // has header, separator ",", first column is "abc"
+                                                // set FILTER criterion using -f flag
+gsv select -f "0=abc|0=de" a.txt               // first column is "abc" or "de"
+gsv select -f "0=abc&1=de" a.txt               // first column is "abc" and second column is "de"
+gsv select -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
+gsv select -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
+gsv select -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+gsv select --help                               // help info on other options
+	
+column filter syntax:
+"0=abc":       first column equal to string "abc"
+"1=5.0":       second column equal to number 5.0
+"1=5":         same as pre command, second column equal to number 5.0
+"0=abc&1=5.0": first column is "abc" AND second column is 5.0
+"0=abc|1=5.0": first column is "abc" OR second column is 5.0
+	
+NOTE: 1. more complex syntax with brackets 
+	     such as "(0=abc|1=5.0)&c=1" is not supported.
+      2. one filter can only have & or |, but never both. 
+	     This feature maybe be added in the future.
+	     
+column selection syntax:
+"1,2":   cols [1,2]
+"1-3,6": cols [1,2,3,6]
+"!1":    cols [all except col 1]
+"-1":    cols [all]
+```
+
 - gsv stats
 ```shell
 gsv stats a.txt           // has header, separator "," (default)
@@ -119,7 +126,7 @@ gsv stats -n a.txt        // no header
 gsv stats -s \t a.txt     // tab separator
 gsv partition --help      // help info on all flags
 
-output looks as bellow.
+statistics table.
 +------+--------+------+--------+---------------------+---------------------+----------+------------+------------+
 | COL  |  TYPE  | NULL | UNIQUE |         MIN         |          MAX        |   MEAN   | MIN LENGTH | MAX LENGTH |
 +------+--------+------+--------+---------------------+---------------------+----------+------------+------------+

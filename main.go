@@ -11,7 +11,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "gsv"
-	app.Version = "0.0.3"
+	app.Version = "0.0.4"
 	app.Usage = "Csv toolkit focused on performance and parallel processing"
 
 	app.Commands = []cli.Command{
@@ -228,23 +228,24 @@ func main() {
 			},
 		},
 		{
-			Name:  "filter",
-			Usage: "Filter rows based on provided column criterion",
+			Name:  "select",
+			Usage: "Select rows and columns based on provided criterion",
 			Description: `examples:
-	 gsv filter -f 0=abc a.txt                       // has header, separator ",", first column is 'abc'
-	 gsv filter -f "0=abc|0=de"" a.txt               // first column is 'abc' or 'de'
-	 gsv filter -f "0=abc&1=de"" a.txt               // first column is 'abc' and second column is 'de'
-	 gsv filter -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
-	 gsv filter -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
-	 gsv filter -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
-	 gsv filter --help                               // help info on other options
+	 gsv select -f 0=abc a.txt                       // has header, separator ",", first column is 'abc',
+	                                                 // set FILTER criterion using -f flag
+	 gsv select -f "0=abc|0=de"" a.txt               // first column is 'abc' or 'de'
+	 gsv select -f "0=abc&1=de"" a.txt               // first column is 'abc' and second column is 'de'
+	 gsv select -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
+	 gsv select -f 0=abc -o a.txt                    // save result to a-select-current-time.txt
+	 gsv select -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+	 gsv select --help                               // help info on other options
 	
 	 column filter syntax:
-	 '0=abc':       first column equal to string 'abc'
-	 '1=5.0':       second column equal to number 5.0
-	 '1=5':         same as pre command, second column equal to number 5.0
-	 '0=abc&1=5.0': first column is 'abc' AND second column is 5.0
-	 '0=abc|1=5.0': first column is 'abc' OR second column is 5.0
+	 -f '0=abc':       first column equal to string 'abc'
+	 -f '1=5.0':       second column equal to number 5.0
+	 -f '1=5':         same as pre command, second column equal to number 5.0
+	 -f '0=abc&1=5.0': first column is 'abc' AND second column is 5.0
+	 -f '0=abc|1=5.0': first column is 'abc' OR second column is 5.0
 	
 	 NOTE: 1. more complex syntax with brackets 
 	          such as '(0=abc|1=5.0)&c=1' is not supported.
@@ -262,7 +263,7 @@ func main() {
 					return nil
 				}
 				out := c.Bool("o")
-				cmd.Filter(path, header, sep, filter, col, out)
+				cmd.Select(path, header, sep, filter, col, out)
 				return nil
 			},
 			Flags: []cli.Flag{
@@ -293,7 +294,7 @@ func main() {
 	}
 
 	app.CommandNotFound = func(c *cli.Context, command string) {
-		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'filter', 'frequency', 'partition', 'stats']", command)
+		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'frequency', 'partition', 'select', 'stats']", command)
 	}
 
 	err := app.Run(os.Args)

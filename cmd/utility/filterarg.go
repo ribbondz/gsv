@@ -17,6 +17,7 @@ type ColumnFilter struct {
 	T          int
 	FloatV     []float64 // list of possible values
 	StringV    []string  // list of possible values
+	allV       []string  // list of all values
 }
 
 type Filter struct {
@@ -65,6 +66,7 @@ func (f *Filter) handleOneFilter(arg string) error {
 	} else {
 		fc := &f.Filters[c]
 		fc.Applicable = true
+		fc.allV = append(fc.allV, splits[1])
 
 		if fc.T == IsFloatFilter {
 			v, err := strconv.ParseFloat(splits[1], 64)
@@ -72,7 +74,7 @@ func (f *Filter) handleOneFilter(arg string) error {
 				fc.FloatV = append(fc.FloatV, v)
 			} else {
 				fc.T = IsStringFilter
-				fc.StringV = append(fc.StringV, splits[1])
+				fc.StringV = append([]string{}, fc.allV...) // transform all previous value into string
 			}
 		} else if fc.T == IsStringFilter {
 			fc.StringV = append(fc.StringV, splits[1])
