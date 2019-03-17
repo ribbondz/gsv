@@ -61,13 +61,11 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 
 	// progress bar
 	size := utility.FileSize(file)
-	bar := progressbar.NewOptions(size,
-		progressbar.OptionSetBytes(size),
-		progressbar.OptionSetRenderBlankState(true))
+	bar := progressbar.NewOptions(size, progressbar.OptionSetBytes(size), progressbar.OptionSetRenderBlankState(true))
 
 	type task struct {
 		m     map[string][]byte // cached content
-		byteN int               //processed bytes
+		byteN int               // number of processed bytes
 	}
 	jobs := make(chan task)
 
@@ -89,7 +87,7 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 			}
 
 			line = br.Bytes()
-			byteN += len(line) + 2
+			byteN += len(line) + 2 // 2 is for line terminator
 			fields := bytes.Split(line, handler.sep)
 			if len(fields) > handler.column {
 				f := string(fields[handler.column])
@@ -132,14 +130,14 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 }
 
 func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressbar.ProgressBar) {
-	result := make(chan int, 100)
-	done := make(chan int)
+	result := make(chan int, 100) // bytes saved
+	done := make(chan int)        // wait progress bar update
 
 	go func() {
 		t := 0
-		for byte := range result {
-			t += byte
-			if t > BarUpdateThreshold {
+		for b := range result {
+			t += b
+			if t > BarUpdateThreshold {  // update every 20MB
 				bar.Add(t)
 				t = 0
 			}
@@ -149,13 +147,13 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 	}()
 
 	for k, v := range content {
-		result <- len(v) + 2
+		result <- len(v)
 
 		// append a header for first time write
 		if handler.header {
 			_, ok := handler.summary[k]
 			if !ok {
-				t := utility.CopyBytes(handler.headerBytes)
+				t := handler.headerBytes
 				t = append(t, '\n')
 				t = append(t, v...)
 				v = t
@@ -202,8 +200,7 @@ func AppendToFile(dir string, col string, content []byte) {
 
 func HashedFileName(name string) (filename string) {
 	h := fnv.New64a()
-	_, err := h.Write([]byte(name))
-	utility.CheckErr(err)
+	h.Write([]byte(name))
 	filename = strconv.FormatUint(h.Sum64(), 10) + ".txt"
 	return
 }

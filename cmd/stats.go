@@ -92,7 +92,7 @@ func Stats(file string, header bool, sep string) {
 	results := make(chan []ColStats, 20)
 	wg := &sync.WaitGroup{}
 
-	// worker
+	// worker, cpu number
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			for job := range jobs {
@@ -115,9 +115,7 @@ func Stats(file string, header bool, sep string) {
 	var n = 0
 	for br.Scan() {
 		totalN++
-
 		batch = append(batch, br.Text())
-
 		n++
 		if n > BatchRowsPerStat {
 			wg.Add(1)
@@ -164,8 +162,7 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 				case IsString:
 					if field < cs.strStats.min {
 						cs.strStats.min = field
-					}
-					if field > cs.strStats.max {
+					} else if field > cs.strStats.max {
 						cs.strStats.max = field
 					}
 					cs.strStats.uniqueMap[field] = 1
@@ -174,26 +171,24 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 						b := int(v)
 						if b < cs.intStats.min {
 							cs.intStats.min = b
-						}
-						if b > cs.intStats.max {
+						} else if b > cs.intStats.max {
 							cs.intStats.max = b
 						}
 						cs.intStats.total += b
 						cs.intStats.uniqueMap[b] = 1
 					} else {
-						fmt.Println("parsing error happen to a row.")
+						fmt.Println("Parsing error happen to a row.")
 					}
 				case IsFloat:
 					if b, err := strconv.ParseFloat(field, 64); err == nil {
 						if b < cs.floatStats.min {
 							cs.floatStats.min = b
-						}
-						if b > cs.floatStats.max {
+						} else if b > cs.floatStats.max {
 							cs.floatStats.max = b
 						}
 						cs.floatStats.total += b
 					} else {
-						fmt.Println("parsing error happen to a row.")
+						fmt.Println("Parsing error happen to a row.")
 					}
 				}
 			}
@@ -231,7 +226,7 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 			}
 
 			for k, _ := range b.strStats.uniqueMap {
-				a.strStats.uniqueMap[k] = 1
+				a.strStats.uniqueMap[k] = 0
 			}
 		case IsInt:
 			if a.intStats.min > b.intStats.min {
@@ -244,7 +239,7 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 
 			a.intStats.total += b.intStats.total
 			for k, _ := range b.intStats.uniqueMap {
-				a.intStats.uniqueMap[k] = 1
+				a.intStats.uniqueMap[k] = 0
 			}
 		case IsFloat:
 			if a.floatStats.min > b.floatStats.min {

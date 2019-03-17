@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sync"
 	"time"
 )
 
@@ -32,7 +31,6 @@ func Cat(dir string, header bool, pattern string) {
 	// dst file
 	dst := dstFile(dir)
 	dstW, _ := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	defer dstW.Close()
 
 	if header {
 		headerContent := utility.HeaderBytes(files[0])
@@ -40,16 +38,12 @@ func Cat(dir string, header bool, pattern string) {
 	}
 
 	// progress bar
-	bar := progressbar.New(len(files))
-	bar.RenderBlank()
+	bar := progressbar.NewOptions(len(files), progressbar.OptionSetRenderBlankState(true))
 
-	jobs := make(chan string, 100)
-	results := make(chan []byte, 100)
+	jobs := make(chan string, 100)    // file pool, can only open 100 files at a time
+	results := make(chan []byte, 100) // file results
 
-	for w := 1; w <= runtime.NumCPU(); w++ {
-		go worker(w, jobs, results, header)
-	}
-
+	// put file into the pool
 	go func() {
 		for _, file := range files {
 			jobs <- file
@@ -57,28 +51,34 @@ func Cat(dir string, header bool, pattern string) {
 		close(jobs)
 	}()
 
-	wg := &sync.WaitGroup{}
-	for range files {
-		content := <-results
-		WriteBytes(dstW, content)
-		wg.Add(1)
+	// worker, read file
+	for w := 1; w <= runtime.NumCPU(); w++ {
 		go func() {
-			bar.Add(1)
-			wg.Done()
+			for path := range jobs {
+				results <- ReadOneFile(path, header)
+			}
 		}()
 	}
 
-	wg.Wait()
+	n := 0 // update progress bar every 5 files
+	for range files {
+		n++
+		content := <-results
+		WriteBytes(dstW, content)
+
+		if n > 4 {
+			n = 0
+			go func() {
+				bar.Add(1)
+			}()
+		}
+	}
+
 	bar.Finish()
 	dstW.Sync()
-	fmt.Printf("\n\nSave to file: %s\n", dst)
+	dstW.Close()
+	fmt.Printf("\n\nSaved to file: %s\n", dst)
 	et.EndAndPrint()
-}
-
-func worker(id int, jobs <-chan string, results chan<- []byte, header bool) {
-	for path := range jobs {
-		results <- ReadOneFile(path, header)
-	}
 }
 
 func fileList(dir string, pattern string) (files []string) {

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type rowContent struct {
+type RowContent struct {
 	n       int
 	content string
 }
@@ -62,11 +62,12 @@ func Select(file string, header bool, sep string, filterPara string, colPara uti
 	}
 
 	jobs := make(chan []string, 20)      // batch rows
-	results := make(chan rowContent, 20) // filter out rows joined in a string
+	results := make(chan RowContent, 20) // batch results, filtered out rows joined in a string
 	wg := &sync.WaitGroup{}              // wait all batch processing
 	total := 0                           // filter out rows count
 
 	// worker, process batch rows
+	// the number of worker defaults to cpu cores
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
 			for job := range jobs {
@@ -95,7 +96,6 @@ func Select(file string, header bool, sep string, filterPara string, colPara uti
 	var batch []string //batch holder
 	for br.Scan() {
 		batch = append(batch, br.Text())
-
 		n++
 		if n > BatchRowsPerStat { // 2000 rows per batch
 			wg.Add(1)
@@ -138,7 +138,7 @@ func keepSavedCol(fields []string, col []int, columnN int) []string {
 	return dst
 }
 
-func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, columnN int) rowContent {
+func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, columnN int) RowContent {
 	var r [][]string
 	for _, row := range rows {
 		splits := strings.Split(row, sep)
@@ -147,9 +147,9 @@ func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, 
 		}
 	}
 
-	// avoid append \n for 0 rows
+	// quick return
 	if len(r) == 0 {
-		return rowContent{0, ""}
+		return RowContent{0, ""}
 	}
 
 	var sb strings.Builder
@@ -158,7 +158,7 @@ func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, 
 		sb.WriteByte('\n')
 	}
 
-	return rowContent{len(r), sb.String()}
+	return RowContent{len(r), sb.String()}
 }
 
 // output filename, data.txt has the default out filename data-current-time.txt

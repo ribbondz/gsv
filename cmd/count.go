@@ -16,6 +16,22 @@ func Count(path string, header bool) (nRow int) {
 		return
 	}
 
+	// 1. is directory: count files in directory
+	if info, err := os.Stat(path); err == nil && info.IsDir() {
+		f, _ := os.Open(path)
+		list, _ := f.Readdir(-1)
+		fmt.Printf("Total files: %d\n", len(list))
+
+		var t int64 = 0
+		for _, i := range list {
+			t += i.Size()
+		}
+		PrintFileSize(int(t))
+		f.Close()
+		return
+	}
+
+	// 2. is file: count lines in file
 	r, err := os.Open(path)
 	defer r.Close()
 	utility.CheckErr(err)
@@ -42,4 +58,17 @@ func Count(path string, header bool) (nRow int) {
 	fmt.Printf("%d\n", nRow)
 	et.EndAndPrint()
 	return
+}
+
+func PrintFileSize(c int) {
+	b := float64(c)
+	mb := 1024.0 * 1024.0
+	gb := mb * 1024.0
+	if b < mb { //1MB
+		fmt.Printf("Total size:  %.2fKB\n", b/1024.0)
+	} else if b < 1024*mb {
+		fmt.Printf("Total size:  %.2fMB\n", b/mb)
+	} else {
+		fmt.Printf("Total size:  %.2fGB\n", b/gb)
+	}
 }

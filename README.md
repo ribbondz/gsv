@@ -37,6 +37,7 @@ gsv count a.txt      // default to have a header
 gsv count -n a.txt   // no header
 gsv count --help     // help info on all flags
 ```
+Tips: **gsv count dirname** can also count the number of files in direcroty.
 
 - gsv cat
 ```shell
