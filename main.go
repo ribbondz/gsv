@@ -37,6 +37,27 @@ func main() {
 			},
 		},
 		{
+			Name:  "header",
+			Usage: "Show headers of CSV file",
+			Description: `examples:
+	 gsv header a.txt         // separator "," (default)
+	 gsv header -s \t a.txt   // separator tab
+`,
+			Action: func(c *cli.Context) error {
+				path := c.Args().First()
+				sep := utility.SepArg(c.String("s"))
+				cmd.Header(path, sep)
+				return nil
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "sep, s",
+					Usage: "File separator",
+					Value: ",",
+				},
+			},
+		},
+		{
 			Name:  "count",
 			Usage: "Count total lines of file",
 			Description: `examples:
@@ -294,7 +315,7 @@ func main() {
 	}
 
 	app.CommandNotFound = func(c *cli.Context, command string) {
-		fmt.Printf("No matching command '%s', available commands are ['head', 'count', 'cat', 'frequency', 'partition', 'select', 'stats']", command)
+		fmt.Printf("No matching command '%s', available commands are ['head', 'header', 'count', 'cat', 'frequency', 'partition', 'select', 'stats']", command)
 	}
 
 	err := app.Run(os.Args)

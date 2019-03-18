@@ -12,6 +12,7 @@ download gsv.exe from release tab; and choose the either one:
 
 ## 2. Available commands
 - **head** - Show head n lines of CSV file.
+- **header** - Show header of CSV file.
 - **count** - Count the lines in CSV file.
 - **cat** - Concatenate CSV files by row **(with progress bar)**.
 - **frequency** - Show frequency table on columns.
@@ -29,6 +30,12 @@ for example, gsv frequency --help.
 gsv head a.txt        // default to first 20 rows
 gsv head -l 30 a.txt  // first 30 rows
 gsv head --help       // help info on all flags
+```
+
+- gsv header 
+```
+gsv header a.txt         // separator "," (default)
+gsv header -s \t a.txt   // separator tab
 ```
 
 - gsv count
