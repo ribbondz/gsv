@@ -63,3 +63,10 @@ func SliceContainsString(s []string, e string) bool {
 	}
 	return false
 }
+
+func PrependStringSlice(source [][]string, e []string) [][]string {
+	r := make([][]string, len(source)+1)
+	copy(r, [][]string{e})
+	copy(r[1:], source)
+	return r
+}

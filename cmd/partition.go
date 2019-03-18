@@ -118,7 +118,7 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 	bar.Finish()
 
 	// print summary info
-	fmt.Printf("\n\nline count: %d, unique column value: %d\n", handler.lineN, len(handler.summary))
+	fmt.Printf("\n\nLine count: %d, unique column value: %d\n", handler.lineN, len(handler.summary))
 
 	// summary
 	if summary {
@@ -137,7 +137,7 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 		t := 0
 		for b := range result {
 			t += b
-			if t > BarUpdateThreshold {  // update every 20MB
+			if t > BarUpdateThreshold { // update every 20MB
 				bar.Add(t)
 				t = 0
 			}
@@ -153,9 +153,11 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 		if handler.header {
 			_, ok := handler.summary[k]
 			if !ok {
-				t := handler.headerBytes
-				t = append(t, '\n')
-				t = append(t, v...)
+				lh := len(handler.headerBytes) // copy is more efficient than append
+				t := make([]byte, lh+1+len(v))
+				copy(t, handler.headerBytes)
+				copy(t[lh:], []byte{'\n'})
+				copy(t[lh+1:], v)
 				v = t
 			}
 		}
@@ -223,7 +225,7 @@ func WriteSummary(path string, summary map[string]int) {
 	})
 
 	// add header
-	result = append([][]string{{"col", "count"}}, result...)
+	result = utility.PrependStringSlice(result, []string{"col", "count"})
 
 	utility.SaveFile(path, result)
 	fmt.Printf("Summary file saved to: %s\n", path)
