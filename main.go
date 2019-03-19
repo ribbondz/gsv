@@ -259,6 +259,7 @@ func main() {
 	 gsv select -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
 	 gsv select -f 0=abc -o a.txt                    // save result to a-select-current-time.txt
 	 gsv select -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+	 gsv select -c 0,1 -o a.txt                      // NO filter, only to select columns
 	 gsv select --help                               // help info on other options
 	
 	 column filter syntax:
@@ -272,6 +273,7 @@ func main() {
 	          such as '(0=abc|1=5.0)&c=1' is not supported.
 	       2. one filter can only have & or |, but never both. 
 	          This feature maybe be added in the future.
+           3. The filter option can be omitted to select all rows.
 `,
 			Action: func(c *cli.Context) error {
 				path := c.Args().First()

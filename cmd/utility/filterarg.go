@@ -8,6 +8,7 @@ import (
 const (
 	IsAnd = iota
 	IsOr
+	IsNull
 	IsFloatFilter
 	IsStringFilter
 )
@@ -25,10 +26,16 @@ type Filter struct {
 	Filters []ColumnFilter
 }
 
+// filter initialization with args
 func NewFilter(arg string, columnN int) (*Filter, error) {
-	r := &Filter{}
+	r := &Filter{Op: IsNull}
 	for i := 0; i < columnN; i++ {
 		r.Filters = append(r.Filters, ColumnFilter{})
+	}
+
+	// no filter
+	if len(arg) == 0 {
+		return r, nil
 	}
 
 	if strings.Contains(arg, "&") {
@@ -58,6 +65,7 @@ func NewFilter(arg string, columnN int) (*Filter, error) {
 	return r, nil
 }
 
+// handle one filter condition
 func (f *Filter) handleOneFilter(arg string) error {
 	splits := strings.Split(arg, "=")
 	c, err := strconv.Atoi(splits[0])
@@ -93,8 +101,12 @@ func (f *Filter) handleOneFilter(arg string) error {
 	return nil
 }
 
+// apply filter to row
 func (f *Filter) FilterOneRowSatisfy(row []string) bool {
-	if f.Op == IsAnd {
+	switch f.Op {
+	case IsNull: // no filter specified
+		return true
+	case IsAnd:
 		for i, filter := range f.Filters {
 			if filter.Applicable {
 				if filter.T == IsStringFilter {
@@ -110,7 +122,7 @@ func (f *Filter) FilterOneRowSatisfy(row []string) bool {
 			}
 		}
 		return true
-	} else {
+	case IsOr:
 		for i, filter := range f.Filters {
 			if filter.Applicable {
 				if filter.T == IsStringFilter && SliceContainsString(filter.StringV, row[i]) {
@@ -125,4 +137,6 @@ func (f *Filter) FilterOneRowSatisfy(row []string) bool {
 		}
 		return false
 	}
+
+	return true
 }

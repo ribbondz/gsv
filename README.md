@@ -109,6 +109,7 @@ gsv select -f "0=abc&1=de" a.txt                // first column is "abc" and sec
 gsv select -f 0=abc -c 0,1,2 a.txt              // output keeps only columns 0, 1, and 2
 gsv select -f 0=abc -o a.txt                    // save result to a-filter-current-time.txt
 gsv select -n -s \t -f 0=abc -c 0,1,2 -o a.txt  // all options
+gsv select -c 0,1 -o a.txt                      // NO filter, only to select columns
 gsv select --help                               // help info on other options
 	
 column filter syntax:
@@ -119,9 +120,10 @@ column filter syntax:
 -f "0=abc|1=5.0"  -->  first column is "abc" OR second column is 5.0
 
 NOTE: 1. more complex syntax with brackets 
-	 such as "(0=abc|1=5.0)&c=1" is not supported.
+	     such as "(0=abc|1=5.0)&c=1" is not supported.
       2. one filter can only have & or |, but never both. 
-	 This feature maybe be added in the future.
+	     This feature maybe be added in the future.
+      3. The filter option can be omitted to select all rows.
 	     
 column selection syntax:
 -c "1,2"   -->    cols [1,2]
