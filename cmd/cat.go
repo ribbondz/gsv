@@ -39,7 +39,6 @@ func Cat(dir string, header bool, pattern string) {
 
 	// progress bar
 	bar := progressbar.NewOptions(len(files), progressbar.OptionSetRenderBlankState(true))
-
 	jobs := make(chan string, 100)    // file pool, can only open 100 files at a time
 	results := make(chan []byte, 100) // file results
 
@@ -65,7 +64,6 @@ func Cat(dir string, header bool, pattern string) {
 		n++
 		content := <-results
 		WriteBytes(dstW, content)
-
 		if n > 4 {
 			n = 0
 			go func() {
@@ -96,15 +94,13 @@ func fileList(dir string, pattern string) (files []string) {
 func dstFile(dir string) string {
 	wd, _ := os.Getwd()
 	timeStr := time.Now().Format("20060102150405")
-
 	// clean dir to prevent save output to sub directories.
 	dir = utility.DirToFilename(dir)
 	return filepath.Join(wd, dir+"-"+timeStr+".txt")
 }
 
 func ReadOneFile(path string, header bool) (byteContent []byte) {
-	byteContent, err := ioutil.ReadFile(path)
-	utility.CheckErr(err)
+	byteContent, _ = ioutil.ReadFile(path)
 
 	// header
 	if header {

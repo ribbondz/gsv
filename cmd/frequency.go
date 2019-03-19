@@ -71,9 +71,7 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 	batch := []string{} //batch holder
 	for br.Scan() {
 		N++
-
 		batch = append(batch, br.Text())
-
 		n++
 		if n > BatchRowsPerStat { // 2000 rows per batch
 			wg.Add(1)
@@ -93,6 +91,7 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 	wg.Wait()
 
 	// generate freq table ([][]string) from results ([]map[string]int)
+	// apply ascending option
 	table := GenerateFreqTable(freq, names, ascending)
 
 	// apply limit option
@@ -102,7 +101,7 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 
 	// apply out option
 	if out {
-		table = append([][]string{{"col", "value", "count"}}, table...)
+		table = utility.PrependStringSlice(table, []string{"col", "value", "count"})
 		outFile := OutFilename(file)
 		utility.SaveFile(outFile, table)
 		fmt.Println("Frequency table saved to: ", outFile)

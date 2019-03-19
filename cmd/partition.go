@@ -156,7 +156,7 @@ func (handler *BufHandler) SaveContent(content map[string][]byte, bar *progressb
 				lh := len(handler.headerBytes) // copy is more efficient than append
 				t := make([]byte, lh+1+len(v))
 				copy(t, handler.headerBytes)
-				copy(t[lh:], []byte{'\n'})
+				t[lh] = '\n'
 				copy(t[lh+1:], v)
 				v = t
 			}
@@ -175,7 +175,6 @@ func dstDirectory(file string) string {
 	file = strings.TrimSuffix(file, filepath.Ext(file))
 	file = utility.DirToFilename(file)
 	timeStr := time.Now().Format("20060102150405")
-
 	dir := filepath.Join(wd, file+"-"+timeStr)
 	err := os.MkdirAll(dir, os.ModePerm)
 	utility.CheckErr(err)

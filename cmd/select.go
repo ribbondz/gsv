@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-type RowContent struct {
-	n       int
-	content string
-}
-
 func Select(file string, header bool, sep string, filterPara string, colPara utility.ColArgs, out bool) {
 	var et utility.ElapsedTime
 	et.Start()
@@ -62,7 +57,7 @@ func Select(file string, header bool, sep string, filterPara string, colPara uti
 	}
 
 	jobs := make(chan []string, 20)      // batch rows
-	results := make(chan RowContent, 20) // batch results, filtered out rows joined in a string
+	results := make(chan [][]string, 20) // batch results, filtered out rows joined in a string
 	wg := &sync.WaitGroup{}              // wait all batch processing
 	total := 0                           // filter out rows count
 
@@ -79,15 +74,20 @@ func Select(file string, header bool, sep string, filterPara string, colPara uti
 	// collect batch result, and merge it into main result
 	go func() {
 		for result := range results {
-			// avoid no content
-			if len(result.content) > 0 {
-				total += result.n
+			if len(result) > 0 {
+				total += len(result) // filtered out number of rows in the batch
+				var sb strings.Builder
+				for _, s := range result {
+					sb.WriteString(strings.Join(s, sep))
+					sb.WriteByte('\n')
+				}
 				if out {
-					bw.WriteString(result.content)
+					bw.WriteString(sb.String())
 				} else {
-					fmt.Print(result.content) // has \n, so use fmt.Print
+					fmt.Print(sb.String()) // has \n, so use fmt.Print
 				}
 			}
+
 			wg.Done() // indicate work done
 		}
 	}()
@@ -138,27 +138,14 @@ func keepSavedCol(fields []string, col []int, columnN int) []string {
 	return dst
 }
 
-func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, columnN int) RowContent {
-	var r [][]string
+func FilterProcessRows(f *utility.Filter, rows []string, sep string, col []int, columnN int) (r [][]string) {
 	for _, row := range rows {
 		splits := strings.Split(row, sep)
 		if f.FilterOneRowSatisfy(splits) {
 			r = append(r, keepSavedCol(splits, col, columnN))
 		}
 	}
-
-	// quick return
-	if len(r) == 0 {
-		return RowContent{0, ""}
-	}
-
-	var sb strings.Builder
-	for _, s := range r {
-		sb.WriteString(strings.Join(s, sep))
-		sb.WriteByte('\n')
-	}
-
-	return RowContent{len(r), sb.String()}
+	return
 }
 
 // output filename, data.txt has the default out filename data-current-time.txt

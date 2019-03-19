@@ -18,7 +18,6 @@ const (
 	IsFloat
 	IsString
 	IsNull
-
 	BatchRowsPerStat = 2000 //rows per batch
 )
 
@@ -165,7 +164,7 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 					} else if field > cs.strStats.max {
 						cs.strStats.max = field
 					}
-					cs.strStats.uniqueMap[field] = 1
+					cs.strStats.uniqueMap[field] = 0
 				case IsInt:
 					if v, err := strconv.ParseInt(field, 10, 64); err == nil {
 						b := int(v)
@@ -175,9 +174,9 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 							cs.intStats.max = b
 						}
 						cs.intStats.total += b
-						cs.intStats.uniqueMap[b] = 1
+						cs.intStats.uniqueMap[b] = 0
 					} else {
-						fmt.Println("Parsing error happen to a row.")
+						fmt.Printf("Parsing error: Column %d has mixed types.", i+1)
 					}
 				case IsFloat:
 					if b, err := strconv.ParseFloat(field, 64); err == nil {
@@ -188,7 +187,7 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 						}
 						cs.floatStats.total += b
 					} else {
-						fmt.Println("Parsing error happen to a row.")
+						fmt.Printf("Parsing error: Column %d has mixed types.", i+1)
 					}
 				}
 			}
@@ -218,13 +217,11 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 			} else if a.strStats.min > b.strStats.min {
 				a.strStats.min = b.strStats.min
 			}
-
 			if a.strStats.max == "" {
 				a.strStats.max = b.strStats.max
 			} else if a.strStats.max < b.strStats.max {
 				a.strStats.max = b.strStats.max
 			}
-
 			for k, _ := range b.strStats.uniqueMap {
 				a.strStats.uniqueMap[k] = 0
 			}
@@ -232,11 +229,9 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 			if a.intStats.min > b.intStats.min {
 				a.intStats.min = b.intStats.min
 			}
-
 			if a.intStats.max < b.intStats.max {
 				a.intStats.max = b.intStats.max
 			}
-
 			a.intStats.total += b.intStats.total
 			for k, _ := range b.intStats.uniqueMap {
 				a.intStats.uniqueMap[k] = 0
@@ -245,11 +240,9 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 			if a.floatStats.min > b.floatStats.min {
 				a.floatStats.min = b.floatStats.min
 			}
-
 			if a.floatStats.max < b.floatStats.max {
 				a.floatStats.max = b.floatStats.max
 			}
-
 			a.floatStats.total += b.floatStats.total
 		}
 	}
@@ -287,7 +280,7 @@ func PrintStats(stat []ColStats, names []string, totalN int) {
 				strconv.Itoa(len(s.intStats.uniqueMap)),
 				strconv.Itoa(s.intStats.min),
 				strconv.Itoa(s.intStats.max),
-				strconv.FormatFloat(float64(s.intStats.total)/float64(totalN), 'f', 4, 64),
+				strconv.FormatFloat(float64(s.intStats.total)/float64(totalN-s.nulls), 'f', 4, 64),
 				strconv.Itoa(s.minLength),
 				strconv.Itoa(s.maxLength),
 			})
@@ -299,7 +292,7 @@ func PrintStats(stat []ColStats, names []string, totalN int) {
 				"-",
 				strconv.FormatFloat(s.floatStats.min, 'f', 4, 64),
 				strconv.FormatFloat(s.floatStats.max, 'f', 4, 64),
-				strconv.FormatFloat(s.floatStats.total/float64(totalN), 'f', 4, 64),
+				strconv.FormatFloat(s.floatStats.total/float64(totalN-s.nulls), 'f', 4, 64),
 				strconv.Itoa(s.minLength),
 				strconv.Itoa(s.maxLength),
 			})
@@ -342,7 +335,7 @@ func statsInit(colTypes []int, firstValue []string) (stat []ColStats) {
 
 func GuessColType(file string, header bool, sep string) ([]int, []string, error) {
 	var (
-		guessN     = 2000
+		guessN     = 10000
 		line       = ""
 		cType      []int
 		firstValue []string
@@ -385,13 +378,20 @@ func GuessColType(file string, header bool, sep string) ([]int, []string, error)
 				firstValue[i] = field
 			}
 
+			// if a column has a value "05"
+			// it is a string field, other than int
+			if len(field) > 1 && field[0:1] == "0" && !strings.Contains(field, ".") {
+				cType[i] = IsString
+				continue
+			}
+
 			// string is always string
 			if cType[i] == IsString {
 				continue
 			}
 
 			// is int
-			if _, err := strconv.ParseInt(field, 10, 64); err == nil {
+			if _, err := strconv.Atoi(field); err == nil {
 				if cType[i] == IsNull {
 					cType[i] = IsInt
 				}
@@ -413,12 +413,11 @@ func GuessColType(file string, header bool, sep string) ([]int, []string, error)
 	return cType, firstValue, nil
 }
 
-func ColumnN(file string, sep string) int {
+func ColumnN(file string, sep string) (n int) {
 	f, _ := os.Open(file)
-	defer f.Close()
 	br := bufio.NewScanner(f)
-
 	br.Scan()
-	line := br.Text()
-	return len(strings.Split(line, sep))
+	n = len(strings.Split(br.Text(), sep))
+	f.Close()
+	return
 }
