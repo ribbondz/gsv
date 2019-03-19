@@ -92,12 +92,8 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 
 	// generate freq table ([][]string) from results ([]map[string]int)
 	// apply ascending option
-	table := GenerateFreqTable(freq, names, ascending)
-
 	// apply limit option
-	if limit > 0 && len(table) >= limit {
-		table = table[0:limit]
-	}
+	table := GenerateFreqTable(freq, names, ascending, limit)
 
 	// apply out option
 	if out {
@@ -159,25 +155,37 @@ func freqMapInit(includeColumn []int) []map[string]int {
 // the table can be feed into a tablewriter to print in stdout, or to be saved into a file
 // the function also sort records according to -ascending flag,
 // default to descending order
-func GenerateFreqTable(freq []map[string]int, names []string, ascending bool) (r [][]string) {
+func GenerateFreqTable(freq []map[string]int, names []string, ascending bool, limit int) (r [][]string) {
 	for i, l := range freq {
+		var one [][]string
 		for k, v := range l {
-			r = append(r, []string{names[i], k, strconv.Itoa(v)})
+			one = append(one, []string{names[i], k, strconv.Itoa(v)})
 		}
-	}
 
-	if ascending {
-		sort.Slice(r, func(i, j int) bool {
-			a, _ := strconv.Atoi(r[i][2])
-			b, _ := strconv.Atoi(r[j][2])
-			return a < b
-		})
-	} else {
-		sort.Slice(r, func(i, j int) bool {
-			a, _ := strconv.Atoi(r[i][2])
-			b, _ := strconv.Atoi(r[j][2])
-			return a > b
-		})
+		// apply ascending option
+		if ascending {
+			sort.Slice(one, func(i, j int) bool {
+				a, _ := strconv.Atoi(one[i][2])
+				b, _ := strconv.Atoi(one[j][2])
+				return a < b
+			})
+		} else {
+			sort.Slice(one, func(i, j int) bool {
+				a, _ := strconv.Atoi(one[i][2])
+				b, _ := strconv.Atoi(one[j][2])
+				return a > b
+			})
+		}
+
+		// apply limit option
+		if limit > 0 && len(one) >= limit {
+			one = one[0:limit]
+		}
+
+		t := make([][]string, len(r)+len(one))
+		copy(t, r)
+		copy(t[len(r):], one)
+		r = t
 	}
 
 	return
@@ -190,7 +198,7 @@ func PrintFreqTable(freq [][]string, totalN int) {
 	table.SetBorder(true)
 	table.AppendBulk(freq)
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
-	table.SetCaption(true, "Total records of file: "+strconv.Itoa(totalN))
+	table.SetCaption(true, "Total records of file:"+strconv.Itoa(totalN))
 	table.Render()
 }
 
