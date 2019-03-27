@@ -137,7 +137,7 @@ column selection syntax:
 gsv stats a.txt           // has header, separator "," (default)
 gsv stats -n a.txt        // no header
 gsv stats -s \t a.txt     // tab separator
-gsv partition --help      // help info on all flags
+gsv stats --help      // help info on all flags
 
 statistics table.
 +------+--------+------+--------+---------------------+---------------------+----------+------------+------------+
