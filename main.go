@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/ribbondz/gsv/cmd"
 	"github.com/ribbondz/gsv/cmd/utility"
 	"github.com/urfave/cli"
-	"os"
 )
 
 func main() {

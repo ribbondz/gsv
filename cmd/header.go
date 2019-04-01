@@ -3,11 +3,12 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
-	"github.com/ribbondz/gsv/cmd/utility"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/ribbondz/gsv/cmd/utility"
 )
 
 func Header(file string, sep string) {

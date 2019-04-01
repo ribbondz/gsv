@@ -59,7 +59,8 @@ func Cat(dir string, header bool, pattern string) {
 		}()
 	}
 
-	n := 0 // update progress bar every 5 files
+	// update progress bar every 5 files
+	n := 0
 	for range files {
 		n++
 		content := <-results
@@ -67,7 +68,7 @@ func Cat(dir string, header bool, pattern string) {
 		if n > 4 {
 			n = 0
 			go func() {
-				bar.Add(1)
+				bar.Add(5)
 			}()
 		}
 	}

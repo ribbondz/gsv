@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/ribbondz/gsv/cmd/utility"
-	"github.com/schollz/progressbar/v2"
 	"hash/fnv"
 	"os"
 	"path/filepath"
@@ -13,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ribbondz/gsv/cmd/utility"
+	"github.com/schollz/progressbar/v2"
 )
 
 var (
