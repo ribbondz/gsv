@@ -60,12 +60,12 @@ func Cat(dir string, header bool, pattern string) {
 	}
 
 	// update progress bar every 5 files
-	n := 0
+	n := 5
 	for range files {
-		n++
+		n--
 		content := <-results
 		WriteBytes(dstW, content)
-		if n > 4 {
+		if n == 0 {
 			n = 0
 			go func() {
 				bar.Add(5)
