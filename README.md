@@ -6,12 +6,12 @@ gsv is a command line program to deal with CSV files. Gsv has following features
 - real-time progress bar
 - simple usage
 
-## 1. Usage
+## Usage
 download gsv.exe from release tab; and choose the either one:
 - put gsv.exe in system path
 - put gsv.exe and the data in same folder
 
-## 2. Available commands
+## Available commands
 - **head** - Show head n lines of CSV file.
 - **header** - Show header of CSV file.
 - **count** - Count the lines in CSV file.
@@ -24,7 +24,7 @@ download gsv.exe from release tab; and choose the either one:
 Tips: you can always check usage of each command by **gsv command --help**, 
 for example, gsv frequency --help.
 
-## 3. Examples
+## Examples
 
 - gsv head
 ```shell
@@ -157,5 +157,5 @@ Total records: 9703035
 Time consumed: 6s
 ```
 
-# 4. Next
+# Next
 new features will be added in the future.
