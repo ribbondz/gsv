@@ -1,6 +1,4 @@
 # csv toolkit written in golang
-[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
-[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
 
 gsv is a command line program to deal with CSV files. Gsv has following features:
 
@@ -8,12 +6,12 @@ gsv is a command line program to deal with CSV files. Gsv has following features
 - real-time progress bar
 - simple usage
 
-## 1. Usage
+## Usage
 download gsv.exe from release tab; and choose the either one:
 - put gsv.exe in system path
 - put gsv.exe and the data in same folder
 
-## 2. Available commands
+## Available commands
 - **head** - Show head n lines of CSV file.
 - **header** - Show header of CSV file.
 - **count** - Count the lines in CSV file.
@@ -26,7 +24,7 @@ download gsv.exe from release tab; and choose the either one:
 Tips: you can always check usage of each command by **gsv command --help**, 
 for example, gsv frequency --help.
 
-## 3. Examples
+## Examples
 
 - gsv head
 ```shell
@@ -140,7 +138,7 @@ column selection syntax:
 gsv stats a.txt           // has header, separator "," (default)
 gsv stats -n a.txt        // no header
 gsv stats -s \t a.txt     // tab separator
-gsv stats --help      // help info on all flags
+gsv stats --help          // help info on all flags
 
 statistics table.
 +------+--------+------+--------+---------------------+---------------------+----------+------------+------------+
@@ -159,5 +157,5 @@ Total records: 9703035
 Time consumed: 6s
 ```
 
-# 4. Next
+# Next
 new features will be added in the future.
