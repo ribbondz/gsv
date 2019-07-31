@@ -26,7 +26,8 @@ func Cat(dir string, header bool, pattern string) {
 		fmt.Print("No files matched.")
 		return
 	}
-	fmt.Printf("Total files: %d\n\n", len(files))
+
+	fmt.Printf("Total number of files: %d\n\n", len(files))
 
 	// dst file
 	dst := dstFile(dir)
@@ -66,7 +67,7 @@ func Cat(dir string, header bool, pattern string) {
 		content := <-results
 		WriteBytes(dstW, content)
 		if n == 0 {
-			n = 0
+			n = 5
 			go func() {
 				bar.Add(5)
 			}()
@@ -122,6 +123,7 @@ func WriteBytes(w *os.File, content []byte) (n int, err error) {
 	if len(content) == 0 {
 		return
 	}
+
 	content = append(content, '\n')
 	n, err = w.Write(content)
 	return

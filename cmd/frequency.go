@@ -122,6 +122,7 @@ func processRows(rows []string, sep string, col []int) []map[string]int {
 			}
 		}
 	}
+
 	return r
 }
 

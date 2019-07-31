@@ -7,7 +7,6 @@ import (
 
 type ElapsedTime struct {
 	startTime time.Time
-	endTime   time.Time
 	elapsed   int
 }
 
