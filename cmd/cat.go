@@ -103,7 +103,6 @@ func dstFile(dir string) string {
 
 func ReadOneFile(path string, header bool) (byteContent []byte) {
 	byteContent, _ = ioutil.ReadFile(path)
-
 	// header
 	if header {
 		n := bytes.IndexByte(byteContent, '\n')
@@ -111,7 +110,6 @@ func ReadOneFile(path string, header bool) (byteContent []byte) {
 			byteContent = byteContent[n+1:]
 		}
 	}
-
 	// unify all new line '\r\n' to '\n'
 	byteContent = bytes.ReplaceAll(byteContent, []byte{'\r', '\n'}, []byte{'\n'})
 	byteContent = bytes.TrimSpace(byteContent)
@@ -123,7 +121,6 @@ func WriteBytes(w *os.File, content []byte) (n int, err error) {
 	if len(content) == 0 {
 		return
 	}
-
 	content = append(content, '\n')
 	n, err = w.Write(content)
 	return

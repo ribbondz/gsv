@@ -5,14 +5,14 @@
 [![coverage](https://img.shields.io/badge/coverage-84%25-brightgreen.svg)](https://gocover.io/github.com/schollz/progressbar)
 [![godocs](https://godoc.org/github.com/schollz/progressbar?status.svg)](https://godoc.org/github.com/schollz/progressbar) 
 
-A very simple thread-safe progress bar which should work on every OS without problems. I needed a progressbar for [croc](https://github.com/schollz/croc) and everything I tried had problems, so I made another one.
+A very simple thread-safe progress bar which should work on every OS without problems. I needed a progressbar for [croc](https://github.com/schollz/croc) and everything I tried had problems, so I made another one. In order to be OS agnostic I do not plan to support [multi-line outputs](https://github.com/schollz/progressbar/issues/6).
 
 ![Example of progress bar](https://user-images.githubusercontent.com/6550035/32120326-5f420d42-bb15-11e7-89d4-c502864e78eb.gif)
 
 ## Install
 
 ```
-go get -u github.com/schollz/progressbar
+go get -u github.com/schollz/progressbar/v2
 ```
 
 ## Usage 
@@ -102,6 +102,35 @@ io.Copy(out, resp.Body)
 
 See the tests for another example.
 
+### Changing max value
+
+The `progressbar` implements `ChangeMax` and `ChangeMax64` functions to change the max value of the progress bar.
+
+```golang
+bar := progressbar.New(100)
+bar.ChangeMax(200) // Change the max of the progress bar to 200, not 100
+```
+
+You can also use `ChangeMax64` to minimize casting in the library.
+See the tests for another example.
+
+### Displaying Total Increment Over Predicted Time
+
+By default the progress bar will attempt to predict the remaining amount of time left. This can be change to 
+just show the current increment over the total maximum amount set for the progress bar. Do this by using the
+`OptionSetPredictTime` option during progress bar creation.
+
+```golang
+bar := progressbar.NewOptions(100, progressbar.OptionSetPredictTime(false))
+bar.Add(20)
+
+// this result equals:
+// "20% |██        |  [20:100]"
+
+// default result equals:
+// "20% |██        |  [3s:15s]"
+```
+
 ## Contributing
 
 Pull requests are welcome. Feel free to...
@@ -116,6 +145,10 @@ Pull requests are welcome. Feel free to...
 Thanks [@Dynom](https://github.com/dynom) for massive improvements in version 2.0!
 
 Thanks [@CrushedPixel](https://github.com/CrushedPixel) for adding descriptions and color code support!
+
+Thanks [@MrMe42](https://github.com/MrMe42) for adding some minor features!
+
+Thanks [@tehstun](https://github.com/tehstun) for some great PRs!
 
 ## License
 

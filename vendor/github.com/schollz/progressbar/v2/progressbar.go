@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,8 +19,7 @@ import (
 type ProgressBar struct {
 	state  state
 	config config
-
-	lock sync.Mutex
+	lock   sync.Mutex
 }
 
 // State is the basic properties of the bar
@@ -41,8 +41,13 @@ type state struct {
 	lastShown time.Time
 	startTime time.Time
 
+	counterTime         time.Time
+	counterNumSinceLast int64
+	counterLastTenRates []float64
+
 	maxLineWidth int
 	currentBytes float64
+	finished     bool
 }
 
 type config struct {
@@ -52,15 +57,27 @@ type config struct {
 	theme                Theme
 	renderWithBlankState bool
 	description          string
+
 	// whether the output is expected to contain color codes
 	colorCodes bool
 	maxBytes   int64
+
 	// show the iterations per second
 	showIterationsPerSecond bool
 	showIterationsCount     bool
 
+	// whether the progress bar should attempt to predict the finishing
+	// time of the progress based on the start time and the average
+	// number of seconds between  increments.
+	predictTime bool
+
 	// minimum time to wait in between updates
 	throttleDuration time.Duration
+
+	// clear bar once finished
+	clearOnFinish bool
+
+	onCompletion func()
 }
 
 // Theme defines the elements of the bar
@@ -130,6 +147,13 @@ func OptionSetBytes64(maxBytes int64) Option {
 	}
 }
 
+// OptionSetPredictTime will also attempt to predict the time remaining.
+func OptionSetPredictTime(predictTime bool) Option {
+	return func(p *ProgressBar) {
+		p.config.predictTime = predictTime
+	}
+}
+
 // OptionShowCount will also print current count out of total
 func OptionShowCount() Option {
 	return func(p *ProgressBar) {
@@ -152,6 +176,19 @@ func OptionThrottle(duration time.Duration) Option {
 	}
 }
 
+// OptionClearOnFinish will clear the bar once its finished
+func OptionClearOnFinish() Option {
+	return func(p *ProgressBar) {
+		p.config.clearOnFinish = true
+	}
+}
+
+func OptionOnCompletion(cmpl func()) Option {
+	return func(p *ProgressBar) {
+		p.config.onCompletion = cmpl
+	}
+}
+
 var defaultTheme = Theme{Saucer: "█", SaucerPadding: " ", BarStart: "|", BarEnd: "|"}
 
 // NewOptions constructs a new instance of ProgressBar, with any options you specify
@@ -162,13 +199,14 @@ func NewOptions(max int, options ...Option) *ProgressBar {
 // NewOptions64 constructs a new instance of ProgressBar, with any options you specify
 func NewOptions64(max int64, options ...Option) *ProgressBar {
 	b := ProgressBar{
-		state: getBlankState(),
+		state: getBasicState(),
 		config: config{
 			writer:           os.Stdout,
 			theme:            defaultTheme,
 			width:            40,
 			max:              max,
 			throttleDuration: 0 * time.Nanosecond,
+			predictTime:      true,
 		},
 	}
 
@@ -183,11 +221,12 @@ func NewOptions64(max int64, options ...Option) *ProgressBar {
 	return &b
 }
 
-func getBlankState() state {
+func getBasicState() state {
 	now := time.Now()
 	return state{
-		startTime: now,
-		lastShown: now,
+		startTime:   now,
+		lastShown:   now,
+		counterTime: now,
 	}
 }
 
@@ -208,31 +247,59 @@ func (p *ProgressBar) Reset() {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	p.state = getBlankState()
+	p.state = getBasicState()
 }
 
 // Finish will fill the bar to full
 func (p *ProgressBar) Finish() error {
+	if p == nil {
+		return fmt.Errorf("progressbar is nil")
+	}
 	p.lock.Lock()
 	p.state.currentNum = p.config.max
 	p.lock.Unlock()
 	return p.Add(0)
 }
 
-// Add with increase the current count on the progress bar
+// Add will add the specified amount to the progressbar
+func (p *ProgressBar) Add(num int) error {
+	return p.Add64(int64(num))
+}
+
+// Set wil set the bar to a current number
 func (p *ProgressBar) Set(num int) error {
 	return p.Set64(int64(num))
 }
 
-// Add with increase the current count on the progress bar
+// Set64 wil set the bar to a current number
 func (p *ProgressBar) Set64(num int64) error {
+	p.lock.Lock()
+	toAdd := int64(num) - p.state.currentNum
+	p.lock.Unlock()
+	return p.Add64(toAdd)
+}
+
+// Add64 will add the specified amount to the progressbar
+func (p *ProgressBar) Add64(num int64) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
 	if p.config.max == 0 {
 		return errors.New("max must be greater than 0")
 	}
-	p.state.currentNum = num
+	p.state.currentNum += num
+
+	// reset the countdown timer every second to take rolling average
+	p.state.counterNumSinceLast += num
+	if time.Since(p.state.counterTime).Seconds() > 0.5 && time.Since(p.state.counterTime).Seconds() > 0 {
+		p.state.counterLastTenRates = append(p.state.counterLastTenRates, float64(p.state.counterNumSinceLast)/time.Since(p.state.counterTime).Seconds())
+		if len(p.state.counterLastTenRates) > 10 {
+			p.state.counterLastTenRates = p.state.counterLastTenRates[1:]
+		}
+		p.state.counterTime = time.Now()
+		p.state.counterNumSinceLast = 0
+	}
+
 	percent := float64(p.state.currentNum) / float64(p.config.max)
 	p.state.currentSaucerSize = int(percent * float64(p.config.width))
 	p.state.currentPercent = int(percent * 100)
@@ -252,14 +319,6 @@ func (p *ProgressBar) Set64(num int64) error {
 	return nil
 }
 
-func (p *ProgressBar) Add(num int) error {
-	return p.Add64(int64(num))
-}
-
-func (p *ProgressBar) Add64(num int64) error {
-	return p.Set64(p.state.currentNum + num)
-}
-
 // Clear erases the progress bar from the current line
 func (p *ProgressBar) Clear() error {
 	return clearProgressBar(p.config, p.state)
@@ -269,6 +328,37 @@ func (p *ProgressBar) Clear() error {
 // can be changed on the fly (as for a slow running process).
 func (p *ProgressBar) Describe(description string) {
 	p.config.description = description
+}
+
+// New64 returns a new ProgressBar
+// with the specified maximum
+func New64(max int64) *ProgressBar {
+	return NewOptions64(max)
+}
+
+// ChangeMax takes in a int
+// and changes the max value
+// of the progress bar
+func (p *ProgressBar) ChangeMax(newMax int) {
+	p.config.max = int64(newMax)
+}
+
+// ChangeMax64 is basically
+// the same as ChangeMax,
+// but takes in a int64
+// to avoid casting
+func (p *ProgressBar) ChangeMax64(newMax int64) {
+	p.config.max = newMax
+}
+
+// Get the max of a bar
+func (p *ProgressBar) GetMax() int {
+	return int(p.config.max)
+}
+
+// Same as GetMax, but returns int64
+func (p *ProgressBar) GetMax64() int64 {
+	return p.config.max
 }
 
 // render renders the progress bar, updating the maximum
@@ -286,6 +376,21 @@ func (p *ProgressBar) render() error {
 	err := clearProgressBar(p.config, p.state)
 	if err != nil {
 		return err
+	}
+
+	// check if the progress bar is finished
+	if !p.state.finished && p.state.currentNum >= p.config.max {
+		p.state.finished = true
+		if !p.config.clearOnFinish {
+			renderProgressBar(p.config, p.state)
+		}
+
+		if p.config.onCompletion != nil {
+			p.config.onCompletion()
+		}
+	}
+	if p.state.finished {
+		return nil
 	}
 
 	// then, re-render the current progress bar
@@ -323,12 +428,18 @@ func (p *ProgressBar) State() State {
 var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 
 func renderProgressBar(c config, s state) (int, error) {
-	var leftTime float64
-	if s.currentNum > 0 {
-		leftTime = time.Since(s.startTime).Seconds() / float64(s.currentNum) * (float64(c.max) - float64(s.currentNum))
+	leftBrac := ""
+	rightBrac := ""
+	saucer := ""
+	bytesString := ""
+
+	averageRate := average(s.counterLastTenRates)
+	if len(s.counterLastTenRates) == 0 || s.finished {
+		// if no average samples, or if finished,
+		// then average rate should be the total rate
+		averageRate = float64(s.currentNum) / time.Since(s.startTime).Seconds()
 	}
 
-	var saucer string
 	if s.currentSaucerSize > 0 {
 		saucer = strings.Repeat(c.theme.Saucer, s.currentSaucerSize-1)
 		saucerHead := c.theme.SaucerHead
@@ -341,8 +452,8 @@ func renderProgressBar(c config, s state) (int, error) {
 	}
 
 	// add on bytes string if max bytes option was set
-	kbPerSecond := float64(s.currentBytes) / 1000.0 / time.Since(s.startTime).Seconds()
-	bytesString := ""
+	kbPerSecond := averageRate / float64(c.max) * float64(c.maxBytes) / 1000.0
+
 	if kbPerSecond > 1000.0 {
 		bytesString = fmt.Sprintf("(%2.1f MB/s)", kbPerSecond/1000.0)
 	} else if kbPerSecond > 0 {
@@ -351,11 +462,23 @@ func renderProgressBar(c config, s state) (int, error) {
 
 	if c.showIterationsPerSecond && !c.showIterationsCount {
 		// replace bytesString if used
-		bytesString = fmt.Sprintf("(%2.0f it/s)", float64(s.currentNum)/time.Since(s.startTime).Seconds())
+		bytesString = fmt.Sprintf("(%2.0f it/s)", averageRate)
 	} else if !c.showIterationsPerSecond && c.showIterationsCount {
 		bytesString = fmt.Sprintf("(%d/%d)", s.currentNum, c.max)
 	} else if c.showIterationsPerSecond && c.showIterationsCount {
-		bytesString = fmt.Sprintf("(%d/%d, %2.0f it/s)", s.currentNum, c.max, float64(s.currentNum)/time.Since(s.startTime).Seconds())
+		bytesString = fmt.Sprintf("(%d/%d, %2.0f it/s)", s.currentNum, c.max, averageRate)
+	}
+
+	if c.predictTime {
+		// Predict the time
+
+		leftBrac = (time.Duration(time.Since(s.startTime).Seconds()) * time.Second).String()
+		rightBrac = (time.Duration((1/averageRate)*(float64(c.max)-float64(s.currentNum))) * time.Second).String()
+	} else {
+		// Give x out of y
+
+		leftBrac = strconv.Itoa(int(s.currentNum))
+		rightBrac = strconv.Itoa(int(c.max))
 	}
 
 	str := fmt.Sprintf("\r%s%4d%% %s%s%s%s %s [%s:%s]",
@@ -366,8 +489,8 @@ func renderProgressBar(c config, s state) (int, error) {
 		strings.Repeat(c.theme.SaucerPadding, c.width-s.currentSaucerSize),
 		c.theme.BarEnd,
 		bytesString,
-		(time.Duration(time.Since(s.startTime).Seconds()) * time.Second).String(),
-		(time.Duration(leftTime) * time.Second).String(),
+		leftBrac,
+		rightBrac,
 	)
 
 	if c.colorCodes {
@@ -422,6 +545,7 @@ type Reader struct {
 	bar *ProgressBar
 }
 
+// Read will read the data and add the number of bytes to the progressbar
 func (r *Reader) Read(p []byte) (n int, err error) {
 	n, err = r.Reader.Read(p)
 	r.bar.Add(n)
@@ -448,4 +572,12 @@ func (p *ProgressBar) Read(b []byte) (n int, err error) {
 	n = len(b)
 	p.Add(n)
 	return
+}
+
+func average(xs []float64) float64 {
+	total := 0.0
+	for _, v := range xs {
+		total += v
+	}
+	return total / float64(len(xs))
 }

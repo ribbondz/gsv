@@ -22,11 +22,10 @@ const (
 )
 
 type ColStats struct {
-	cType     int
-	nulls     int
-	minLength int
-	maxLength int
-
+	cType      int
+	nulls      int
+	minLength  int
+	maxLength  int
 	intStats   IntColStats
 	floatStats FloatColStats
 	strStats   StringColStats
@@ -54,28 +53,23 @@ type FloatColStats struct {
 func Stats(file string, header bool, sep string) {
 	var et utility.ElapsedTime
 	et.Start()
-
 	// check file existence
 	if !utility.FileIsExist(file) {
 		fmt.Print("File does not exist. Try command 'gsv stats --help'.")
 		return
 	}
-
 	// column types
 	colTypes, firstValue, err := GuessColType(file, header, sep) // "" is string
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-
 	// stats initial
 	stat := statsInit(colTypes, firstValue)
-
 	// stats processing
 	f, _ := os.Open(file)
 	defer f.Close()
 	br := bufio.NewScanner(f)
-
 	// column names and header drop
 	var names []string
 	if header {
@@ -86,11 +80,9 @@ func Stats(file string, header bool, sep string) {
 			names = append(names, "col"+strconv.Itoa(i+1))
 		}
 	}
-
 	jobs := make(chan []string, 20)
 	results := make(chan []ColStats, 20)
 	wg := &sync.WaitGroup{}
-
 	// worker, cpu number
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
@@ -99,7 +91,6 @@ func Stats(file string, header bool, sep string) {
 			}
 		}()
 	}
-
 	// collect result
 	go func() {
 		for result := range results {
@@ -107,7 +98,6 @@ func Stats(file string, header bool, sep string) {
 			wg.Done()
 		}
 	}()
-
 	// reading file in main thread
 	var batch []string
 	var totalN = 0
@@ -123,28 +113,23 @@ func Stats(file string, header bool, sep string) {
 			batch = []string{}
 		}
 	}
-
 	if len(batch) > 0 {
 		wg.Add(1)
 		jobs <- batch
 	}
 	close(jobs)
-
 	wg.Wait()
 	PrintStats(stat, names, totalN)
-
 	et.EndAndPrint()
 }
 
 // len(lines) > 0
 func processRow(lines []string, colTypes []int, firstValue []string, sep string) []ColStats {
 	stats := statsInit(colTypes, firstValue)
-
 	for _, line := range lines {
 		fields := strings.Split(line, sep)
 		for i, field := range fields {
 			cs := &stats[i]
-
 			l := len(field)
 			if l < cs.minLength {
 				cs.minLength = l
@@ -152,7 +137,6 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 			if l > cs.maxLength {
 				cs.maxLength = l
 			}
-
 			// null
 			if field == "" || field == "NA" || field == "Na" || field == "na" || field == "Null" || field == "NULL" {
 				cs.nulls++
@@ -193,7 +177,6 @@ func processRow(lines []string, colTypes []int, firstValue []string, sep string)
 			}
 		}
 	}
-
 	return stats
 }
 
@@ -202,14 +185,12 @@ func mergeStats(dst []ColStats, s []ColStats) []ColStats {
 	for i := range dst {
 		a, b := &dst[i], s[i]
 		a.nulls += b.nulls
-
 		if a.minLength > b.minLength {
 			a.minLength = b.minLength
 		}
 		if a.maxLength < b.maxLength {
 			a.maxLength = b.maxLength
 		}
-
 		switch a.cType {
 		case IsString:
 			if a.strStats.min == "" {
@@ -254,7 +235,6 @@ func PrintStats(stat []ColStats, names []string, totalN int) {
 	if totalN == 0 {
 		totalN++
 	}
-
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"col", "type", "null", "unique", "min", "max", "mean", "min_length", "max_length"})
 	table.SetBorder(true)
@@ -298,7 +278,6 @@ func PrintStats(stat []ColStats, names []string, totalN int) {
 			})
 		}
 	}
-
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
 	table.SetCaption(true, "Total records: "+strconv.Itoa(totalN))
 	table.Render()
@@ -310,7 +289,6 @@ func statsInit(colTypes []int, firstValue []string) (stat []ColStats) {
 		cs.strStats.uniqueMap = make(map[string]int)
 		cs.intStats.uniqueMap = make(map[int]int)
 		cs.cType = ct
-
 		// initial min and max to the first value of file
 		if ct == IsString {
 			cs.strStats.min = firstValue[i]
@@ -324,7 +302,6 @@ func statsInit(colTypes []int, firstValue []string) (stat []ColStats) {
 			cs.floatStats.min = v
 			cs.floatStats.max = v
 		}
-
 		// initial max_length min_length
 		cs.minLength = 9999999
 		cs.maxLength = -9999999
@@ -341,55 +318,47 @@ func GuessColType(file string, header bool, sep string) ([]int, []string, error)
 		firstValue []string
 		fields     []string
 	)
-
 	// type initialization
 	cn := ColumnN(file, sep)
 	for i := 0; i < cn; i++ {
 		cType = append(cType, IsNull)
 		firstValue = append(firstValue, "")
 	}
-
+	// open file
 	f, _ := os.Open(file)
 	defer f.Close()
 	br := bufio.NewScanner(f)
-
 	if header {
 		br.Scan()
 		br.Bytes()
 	}
-
+	// read
 	for br.Scan() && guessN > 0 {
 		guessN--
-
 		line = br.Text()
 		fields = strings.Split(line, sep)
 		if len(fields) != len(cType) {
 			return []int{}, []string{}, errors.New("rows have unequal length")
 		}
-
 		for i, field := range fields {
 			// skip null values
 			if field == "" || field == "NA" || field == "Na" || field == "na" || field == "Null" || field == "NULL" {
 				continue
 			}
-
 			// obtain first not-null value
 			if firstValue[i] == "" && len(strings.TrimSpace(field)) > 0 {
 				firstValue[i] = field
 			}
-
 			// if a column has a value "05"
 			// it is a string field, other than int
 			if len(field) > 1 && field[0:1] == "0" && !strings.Contains(field, ".") {
 				cType[i] = IsString
 				continue
 			}
-
 			// string is always string
 			if cType[i] == IsString {
 				continue
 			}
-
 			// is int
 			if _, err := strconv.Atoi(field); err == nil {
 				if cType[i] == IsNull {
@@ -397,19 +366,16 @@ func GuessColType(file string, header bool, sep string) ([]int, []string, error)
 				}
 				continue
 			}
-
-			// is float
+			// is floated
 			if _, err := strconv.ParseFloat(field, 64); err == nil {
 				if cType[i] == IsNull || cType[i] == IsInt {
 					cType[i] = IsFloat
 				}
 				continue
 			}
-
 			cType[i] = IsString
 		}
 	}
-
 	return cType, firstValue, nil
 }
 

@@ -18,7 +18,6 @@ import (
 func Frequency(file string, header bool, sep string, colPara utility.ColArgs, out bool, ascending bool, limit int) {
 	var et utility.ElapsedTime
 	et.Start()
-
 	// check file existence
 	if !utility.FileIsExist(file) {
 		fmt.Print("File does not exist. Try command 'gsv frequency --help'.")
@@ -43,12 +42,10 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 			names = append(names, "col_"+strconv.Itoa(i+1))
 		}
 	}
-
 	jobs := make(chan []string, 20)            // batch rows
 	results := make(chan []map[string]int, 20) // batch processed result
 	wg := &sync.WaitGroup{}                    // wait for all batches to be processed
 	freq := freqMapInit(col)                   // data structure to save frequency table, []map[string]int
-
 	// worker, process batch rows
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func() {
@@ -89,12 +86,10 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 
 	// wait all batch result to be processed
 	wg.Wait()
-
 	// generate freq table ([][]string) from results ([]map[string]int)
 	// apply ascending option
 	// apply limit option
 	table := GenerateFreqTable(freq, names, ascending, limit)
-
 	// apply out option
 	if out {
 		table = utility.PrependStringSlice(table, []string{"col", "value", "count"})
@@ -107,14 +102,12 @@ func Frequency(file string, header bool, sep string, colPara utility.ColArgs, ou
 			fmt.Println("Limit: ", limit)
 		}
 	}
-
 	et.EndAndPrint()
 }
 
 // process batch rows
 func processRows(rows []string, sep string, col []int) []map[string]int {
 	r := freqMapInit(col)
-
 	for _, row := range rows {
 		for i, field := range strings.Split(row, sep) {
 			if utility.SliceContainsInt(col, i) {
@@ -122,10 +115,10 @@ func processRows(rows []string, sep string, col []int) []map[string]int {
 			}
 		}
 	}
-
 	return r
 }
 
+// MergeMapList
 // batch frequency tables are merged into main table sequentially
 func MergeMapList(l1, l2 []map[string]int) []map[string]int {
 	for i := range l1 {
@@ -142,7 +135,6 @@ func MergeMapList(l1, l2 []map[string]int) []map[string]int {
 // the map records column value (key) and counts (value)
 func freqMapInit(includeColumn []int) []map[string]int {
 	var r []map[string]int
-
 	maxColumnIndex := includeColumn[len(includeColumn)-1]
 	for i := 0; i <= maxColumnIndex; i++ {
 		m := make(map[string]int)
@@ -151,6 +143,7 @@ func freqMapInit(includeColumn []int) []map[string]int {
 	return r
 }
 
+// GenerateFreqTable
 // transform list of N maps to a frequency table,
 // the table has structure [][]string
 // the table can be feed into a tablewriter to print in stdout, or to be saved into a file
@@ -192,6 +185,7 @@ func GenerateFreqTable(freq []map[string]int, names []string, ascending bool, li
 	return
 }
 
+// PrintFreqTable
 // use tablewriter to print frequency table to stdout
 func PrintFreqTable(freq [][]string, totalN int) {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -203,6 +197,7 @@ func PrintFreqTable(freq [][]string, totalN int) {
 	table.Render()
 }
 
+// OutFilename
 // output filename, data.txt has the default out filename data-current-time.txt
 func OutFilename(file string) string {
 	wd, _ := os.Getwd()

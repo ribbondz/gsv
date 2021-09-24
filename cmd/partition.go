@@ -18,7 +18,7 @@ import (
 
 var (
 	BarUpdateThreshold = 1024 * 1024 * 20   // 20MB
-	Batch              = 1024 * 1024 * 1000 // 1000MB
+	Batch              = 1024 * 1024 * 2000 // 2000MB
 )
 
 type BufHandler struct {
@@ -57,19 +57,21 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 	handler.header = header
 
 	if header && br.Scan() {
-		handler.headerBytes = utility.CopyBytes(br.Bytes()) // must copy because s.token change under the hood
+		// must copy because s.token change under the hood
+		handler.headerBytes = utility.CopyBytes(br.Bytes())
 	}
 
 	// progress bar
 	size := utility.FileSize(file)
-	bar := progressbar.NewOptions(size, progressbar.OptionSetBytes(size), progressbar.OptionSetRenderBlankState(true))
-
+	bar := progressbar.NewOptions(size,
+		progressbar.OptionSetBytes(size),
+		progressbar.OptionSetRenderBlankState(true))
+	// task
 	type task struct {
 		m     map[string][]byte // cached content
 		byteN int               // number of processed bytes
 	}
 	jobs := make(chan task)
-
 	// goroutine reading
 	go func() {
 		var (
@@ -86,7 +88,7 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 				byteN = 0
 				m = make(map[string][]byte)
 			}
-
+			// continue reading
 			line = br.Bytes()
 			byteN += len(line) + 2 // 2 is for line terminator
 			fields := bytes.Split(line, handler.sep)
@@ -97,12 +99,10 @@ func Partition(file string, header bool, column int, sep string, summary bool) {
 				m[f] = a
 			}
 		}
-
 		// submit final content in the batch
 		if len(m) > 0 {
 			jobs <- task{m, byteN}
 		}
-
 		// close chan
 		// so that the write function knows that there will be no content
 		close(jobs)
@@ -209,24 +209,21 @@ func HashedFileName(name string) (filename string) {
 
 func WriteSummary(path string, summary map[string]int) {
 	var result [][]string
-
 	for k, v := range summary {
 		result = append(result, []string{
 			k,
 			strconv.Itoa(v),
 		})
 	}
-
 	// sort by col
 	sort.Slice(result, func(i, j int) bool {
 		a, _ := strconv.ParseInt(result[i][1], 10, 64)
 		b, _ := strconv.ParseInt(result[j][1], 10, 64)
 		return a > b
 	})
-
 	// add header
 	result = utility.PrependStringSlice(result, []string{"col", "count"})
-
+	// save
 	utility.SaveFile(path, result)
 	fmt.Printf("Summary file saved to: %s\n", path)
 }

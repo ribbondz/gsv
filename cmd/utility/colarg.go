@@ -12,6 +12,7 @@ type ColArgs struct {
 	Exclude []int
 }
 
+// ParseColArg
 // examples:
 // 1,2
 // 1,2-4,6
@@ -23,13 +24,11 @@ func ParseColArg(col string) (r ColArgs, err error) {
 		r.All = true
 		return
 	}
-
 	for _, c := range strings.Split(col, ",") {
 		// avoid    1,2-4,  =>   ['1', '2', '']
 		if len(c) == 0 {
 			continue
 		}
-
 		if strings.Contains(c, "-") {
 			s := strings.Split(c, "-")
 			min, err1 := strconv.Atoi(s[0])
@@ -56,11 +55,9 @@ func ParseColArg(col string) (r ColArgs, err error) {
 			}
 		}
 	}
-
 	if len(r.Include) == 0 && len(r.Include) > 0 {
 		r.All = true
 	}
-
 	return
 }
 
